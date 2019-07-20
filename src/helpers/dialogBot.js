@@ -1,8 +1,9 @@
 import dialogflow  from 'dialogflow';
 import uuid  from 'uuid';
+import bunyan from 'bunyan';
 
 var sessions = new Map();
-
+var log = bunyan.createLogger({name: "xsBot"});
 async function runDialogFlow(userId = 'default',message = '',projectId = 'xsbot-wgmlfx') {
     // A unique identifier for the given session
     var sessionId
@@ -33,12 +34,12 @@ async function runDialogFlow(userId = 'default',message = '',projectId = 'xsbot-
     try {
         const responses = await sessionClient.detectIntent(request);
         const result = responses[0].queryResult;
-        console.log(`  Query: ${result.queryText}`);
-        console.log(`  Response: ${result.fulfillmentText}`);
+        log.debug(`  Query: ${result.queryText}`);
+        log.debug(`  Response: ${result.fulfillmentText}`);
         if (result.intent) {
-        console.log(`  Intent: ${result.intent.displayName}`);
+            log.debug(`  Intent: ${result.intent.displayName}`);
         } else {
-        console.log(`  No intent matched.`);
+            log.debug(`  No intent matched.`);
         }
         if (result.fulfillmentText){
             return {
@@ -47,8 +48,8 @@ async function runDialogFlow(userId = 'default',message = '',projectId = 'xsbot-
             }
         }
     } catch (err) {
-        console.log(err);
+        log.error(err);
     }
-    console.log(`  No intent matched.`);
+    log.warn(`  No intent matched.`);
 }
 module.exports = runDialogFlow;

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx nodemon --exec babel-node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +22,7 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-transform-async-to-generator": "^7.5.0",
     "@babel/runtime": "^7.5.5",
+    "bunyan": "^1.8.12",
     "dialogflow": "^0.10.2",
     "discord.js": "github:hydrabolt/discord.js",
     "uuid": "^3.3.2"
