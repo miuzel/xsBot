@@ -7,15 +7,17 @@ import { Client, RichEmbed } from 'discord.js';
 import { token,gProject,prefix,myUsername} from '../settings';
 import { exists } from 'fs';
 import runDialogFlow from './helpers/dialogBot';
+import bunyan from 'bunyan';
 // Create an instance of a Discord client
 const client = new Client();
-
+var log = bunyan.createLogger({name: "xsBot"});
 /**
  * The ready event is vital, it means that only _after_ this will your bot start reacting to information
- * received from Discord
+ * received fr
+ * om Discord
  */
 client.on('ready',  () => {
-  console.log('I am ready!');
+  log.info('I am ready!');
 });
 
 var tryDialog = async m => {
@@ -26,7 +28,6 @@ var tryDialog = async m => {
 }
 
 var isMine = m => {
-  console.log(m)
   return m.content.trim().toLowerCase().startsWith(prefix) || 
   (m.mentions.users.first() && m.mentions.users.first().username === myUsername);
 } 
