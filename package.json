@@ -22,9 +22,13 @@
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/plugin-transform-async-to-generator": "^7.5.0",
     "@babel/runtime": "^7.5.5",
+    "@keyv/sqlite": "^2.0.0",
     "bunyan": "^1.8.12",
     "dialogflow": "^0.10.2",
     "discord.js": "github:hydrabolt/discord.js",
+    "google-auth-library": "^4.2.5",
+    "googleapis": "^41.0.1",
+    "keyv": "^3.1.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
