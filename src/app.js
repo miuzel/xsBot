@@ -3,14 +3,26 @@
  */
 
 // Extract the required classes from the discord.js module
-import { Client, RichEmbed } from 'discord.js';
-import { token,gProject,prefix,myUsername} from '../settings';
-import { exists } from 'fs';
+import { Client } from 'discord.js';
+import { config } from '../settings';
 import runDialogFlow from './helpers/dialogBot';
 import bunyan from 'bunyan';
+import task from './tasks/ytlivenotify';
+import Keyv from 'keyv';
+
+var log = bunyan.createLogger({name: "xsBot"});
 // Create an instance of a Discord client
 const client = new Client();
-var log = bunyan.createLogger({name: "xsBot"});
+const keyv = new Keyv(`sqlite://${config.kv}`);
+const prefix = config.prefix;
+const gProject = config.gProject;
+const token = config.token;
+const myUsername = config.myUsername;
+const tasks = config.tasks;
+
+
+keyv.on('error', err => log.error('Keyv connection error:', err));
+
 /**
  * The ready event is vital, it means that only _after_ this will your bot start reacting to information
  * received fr
@@ -18,6 +30,7 @@ var log = bunyan.createLogger({name: "xsBot"});
  */
 client.on('ready',  () => {
   log.info('I am ready!');
+  task.start(tasks[task.name],client,keyv);
 });
 
 var tryDialog = async m => {
@@ -48,7 +61,7 @@ client.on('message', message => {
   }
 });
 
+
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-
 

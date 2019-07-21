@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 settings.json
 gcpkey.json
+*.sqlite
+
 # Runtime data
 pids
 *.pid
