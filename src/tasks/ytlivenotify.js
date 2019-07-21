@@ -6,11 +6,12 @@ var discordClient;
 var channels = [];
 var scanForLive= async () => {
     for (var channel of channels){
-        let liveStreams = await getLiveStreams(channel);
+        await getLiveStreams(channel);
     }
 };
 var keyv;
 var getLiveStreams= async channel => {
+    log.info('Get livestreams start.')
     try {
         const response = await  service.search.list(
             {
@@ -27,31 +28,27 @@ var getLiveStreams= async channel => {
             return;
         } else {
             for (var liveStream of liveStreams){
-                log.info('This channel\'s ID is %s. Its title is \'%s\', and ' +
-                            'description: %s',
-                            liveStream.id.videoId,
-                            liveStream.snippet.title,
-                            liveStream.snippet.description);
                 let videoKey = "notified#"+liveStream.id.videoId;
-                let notifed = await keyv.get(videoKey)
-                if (!notifed && discordClient && channel.discordChannels){
+                let notified = await keyv.get(videoKey)
+                if (!notified && discordClient && channel.discordChannels){
                     let msg = `@everyone ${channel.owner} 开始直播啦 不要忘记点赞哦。 https://www.youtube.com/watch?v=${liveStream.id.videoId}`;
                     for (var discordChannel of channel.discordChannels){
+                        log.info('This video\'s ID is %s. Title \'%s\'',
+                                    liveStream.id.videoId,
+                                    liveStream.snippet.title);
                         const [guildName,channelName]  = discordChannel.split('#');
                         let channel = discordClient
                         .guilds.find(guild => guild.name === guildName)
                         .channels.find(ch => ch.name === channelName)
-                        channel.send(msg)
+                        channel.send(msg);
                     }
                     await keyv.set(videoKey,true)
                 }
             }
-            
-            return liveStreams;
         }
+        log.info('Get livestreams done.')
     } catch (err){
         log.error('The API returned an error: ' + err);
-        return;
     }
 };
 var task = {
@@ -68,6 +65,7 @@ var task = {
         for (var channel of settings.channels){
             channels.push(channel);
         }
+        scanForLive();
         setInterval(scanForLive, settings.interval);
     }
 };
