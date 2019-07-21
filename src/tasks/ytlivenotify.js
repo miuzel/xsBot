@@ -7,7 +7,6 @@ var channels = [];
 var scanForLive= async () => {
     for (var channel of channels){
         let liveStreams = await getLiveStreams(channel);
-        log.info(liveStreams);
     }
 };
 var keyv;
@@ -36,7 +35,7 @@ var getLiveStreams= async channel => {
                 let videoKey = "notified#"+liveStream.id.videoId;
                 let notifed = await keyv.get(videoKey)
                 if (!notifed && discordClient && channel.discordChannels){
-                    let msg = `${channel.owner} 开始直播啦 不要忘记点赞哦。 https://www.youtube.com/watch?v=${liveStream.id.videoId}`;
+                    let msg = `@everyone ${channel.owner} 开始直播啦 不要忘记点赞哦。 https://www.youtube.com/watch?v=${liveStream.id.videoId}`;
                     for (var discordChannel of channel.discordChannels){
                         const [guildName,channelName]  = discordChannel.split('#');
                         let channel = discordClient
