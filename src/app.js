@@ -21,20 +21,29 @@ client.on('ready',  () => {
 });
 
 var tryDialog = async m => {
-  let result = await runDialogFlow(m.author.id,m.content.trim().substr(4),gProject)
+  let result = await runDialogFlow(m.author.id,m.content,gProject)
   if(result){
     m.channel.send(result.response);
   }
 }
 
-var isMine = m => {
-  return m.content.trim().toLowerCase().startsWith(prefix) || 
-  (m.mentions.users.first() && m.mentions.users.first().username === myUsername);
+var msgToMe = m => {
+  const trimed = m.content.trim().toLowerCase();
+  if( trimed.startsWith(prefix)){
+    return m.content.trim().slice(prefix.length).trim()
+  }
+  const matches = trimed.match(/^(<@!?\d+>)/);
+  if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
+    return trimed.slice(matches[1].length).trim()
+  }
+  return false;
 } 
 
 client.on('message', message => {
   // If the message is "how to embed"
-  if (isMine(message)) {
+  const msg = msgToMe(message);
+  if (msg) {
+    message.content = msg;
     tryDialog(message);
   }
 });
