@@ -29,6 +29,7 @@
     "google-auth-library": "^4.2.5",
     "googleapis": "^41.0.1",
     "keyv": "^3.1.0",
+    "mail-notifier": "^0.5.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

@@ -18,7 +18,6 @@ const prefix = config.prefix;
 const gProject = config.gProject;
 const token = config.token;
 const myUsername = config.myUsername;
-const tasks = config.tasks;
 
 
 keyv.on('error', err => log.error('Keyv connection error:', err));
@@ -30,7 +29,11 @@ keyv.on('error', err => log.error('Keyv connection error:', err));
  */
 client.on('ready',  () => {
   log.info('I am ready!');
-  task.start(tasks[task.name],client,keyv);
+  var tasks = ['ytlivenotify','ytmailnotify']
+  for (var t of tasks ){
+    var task = require(`./tasks/${t}`)
+    task.start(config.tasks[task.name],client,keyv);
+  }
 });
 
 var tryDialog = async m => {
