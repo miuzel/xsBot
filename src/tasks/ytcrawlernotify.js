@@ -25,8 +25,9 @@ var processLiveInfo = async ($,e) => {
         }
         let videoKey = "notified#"+videoId;
         let notified = await keyv.get(videoKey)
+        log.info(`${channel} LIVE now：${title} ${meta} videoId: ${videoId} url: ${url}`)
         if (!notified && discordClient && config.discordChannels){
-            log.info(`${channel} LIVE now：${title} ${meta} videoId: ${videoId} url: ${url}`)
+            log.info(`First occurance. Report to discord.`)
             // sending msgs to all subscribed channels
             let msg = `@everyone ${channel} 开始直播啦 不要忘记点赞，欢迎大家跟我聊天哦。`+"\n"+url;
             for (var discordChannel of config.discordChannels){
@@ -51,7 +52,8 @@ var newCrawler = (config) => {
     return new Crawler({
         maxConnections: 10,
         rateLimit: 1000,
-        callback: (error, res, done) =>{
+        callback: async (error, res, done) =>{
+            log.info("Start crawling feed subscription");
             if(error){
                 console.log(error);
             }else{
@@ -76,7 +78,7 @@ var newCrawler = (config) => {
                     log.error(err);
                 }
             }
-            done();
+            await done();
         }
     });
 }
