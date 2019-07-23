@@ -1,9 +1,11 @@
 import {google}  from 'googleapis';
 import bunyan from 'bunyan';
-var log = bunyan.createLogger({name: "xsBot"});
+const moduleName = 'ytlivenotify';
+var log = bunyan.createLogger({name: moduleName});
 var service;
 var discordClient;
 var channels = [];
+var window = new Map();
 var scanForLive= async () => {
     for (var channel of channels){
         await getLiveStreams(channel);
@@ -33,15 +35,15 @@ var getLiveStreams= async channel => {
                 if (!notified && discordClient && channel.discordChannels){
                     let msg = `@everyone ${channel.owner} 开始直播啦 不要忘记点赞哦。 https://www.youtube.com/watch?v=${liveStream.id.videoId}`;
                     for (var discordChannel of channel.discordChannels){
-                        log.info('This video\'s ID is %s. Title \'%s\'',
-                                    liveStream.id.videoId,
-                                    liveStream.snippet.title);
                         const [guildName,channelName]  = discordChannel.split('#');
                         let channel = discordClient
                         .guilds.find(guild => guild.name === guildName)
                         .channels.find(ch => ch.name === channelName)
                         channel.send(msg);
                     }
+                    log.info('This video\'s ID is %s. Title \'%s\'',
+                    liveStream.id.videoId,
+                    liveStream.snippet.title);
                     await keyv.set(videoKey,true)
                 }
             }
@@ -52,7 +54,7 @@ var getLiveStreams= async channel => {
     }
 };
 var task = {
-    name: "ytlivenotify",
+    name: moduleName,
     start: (settings,discord,kv) => {
         service = google.youtube(
             {
