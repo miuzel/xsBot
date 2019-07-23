@@ -8,6 +8,7 @@ var keyv;
 var config;
 var sessionOK = true;
 var c;
+var backendChannel;
 var processLiveInfo = async ($,e) => {
     try {
         var item = $(e).parent().parent().parent().parent();
@@ -55,7 +56,8 @@ var newCrawler = (config) => {
         callback: async (error, res, done) =>{
             log.info("Start crawling feed subscription");
             if(error){
-                console.log(error);
+                console.log("爬虫出错啦："+error);
+                backendChannel.send("@everyone 爬虫出错啦："+error);
             }else{
                 var $ = res.$;
                 try {
@@ -66,13 +68,10 @@ var newCrawler = (config) => {
                     } else {
                         log.error(`Session cookie unavaliable title:$("title").text() expected Subscriptions` );
                         if(discordClient){
-                            let channel = discordClient
-                            .guilds.find(guild => guild.name === "mxtest")
-                            .channels.find(ch => ch.name === "常规")
-                            channel.send("@everyone 大事不好啦，youtube的cookie过期了，谁给我个新的");
+                            backendChannel.send("@everyone 大事不好啦，youtube的爬虫出问题了，爬到页面"+$("title").text());
                             // todo: using conversation to update session
                         }
-                        sessionOK = false; // restore until restart
+                        //sessionOK = false; // restore until restart
                     }
                 } catch (err){
                     log.error(err);
@@ -89,6 +88,9 @@ var init = () => {
             cookie: config.cookie
         };
     });
+    backendChannel = discordClient
+    .guilds.find(guild => guild.name === "mxtest")
+    .channels.find(ch => ch.name === "常规")
 }
 
 var task = {
