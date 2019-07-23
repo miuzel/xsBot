@@ -52,7 +52,7 @@ var msgToMe = m => {
   if( trimed.startsWith(myUsername)){
     return m.content.trim().slice(myUsername.length).trim()
   }
-  if( m.channel.type === "dm"){
+  if( m.channel.type === "dm" && m.author.id !== client.user.id){
     return m.content.trim()
   }
   const matches = trimed.match(/^(<@!?\d+>)/);
