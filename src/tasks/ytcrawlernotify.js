@@ -62,7 +62,7 @@ var newCrawler = (config) => {
                             processLiveInfo($,e);
                         })
                     } else {
-                        log.error("Session cookie unavaliable");
+                        log.error(`Session cookie unavaliable title:$("title").text() expected Subscriptions` );
                         if(discordClient){
                             let channel = discordClient
                             .guilds.find(guild => guild.name === "mxtest")
