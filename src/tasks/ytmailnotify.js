@@ -1,6 +1,7 @@
 import notifier from 'mail-notifier';
 import bunyan from 'bunyan';
-var log = bunyan.createLogger({name: "xsBot"});
+const moduleName = 'ytmailnotify';
+var log = bunyan.createLogger({name: moduleName});
 var discordClient;
 var discordChannels;
 var keyv;
@@ -31,7 +32,7 @@ var processMail = async mail => {
 }
 
 var task = {
-    name: "ytmailnotify",
+    name: moduleName,
     start: (settings,discord,kv) => {
         const imap = {
             user: settings.email,

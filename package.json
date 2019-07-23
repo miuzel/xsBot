@@ -24,6 +24,7 @@
     "@babel/runtime": "^7.5.5",
     "@keyv/sqlite": "^2.0.0",
     "bunyan": "^1.8.12",
+    "crawler": "^1.2.1",
     "dialogflow": "^0.10.2",
     "discord.js": "github:hydrabolt/discord.js",
     "google-auth-library": "^4.2.5",
