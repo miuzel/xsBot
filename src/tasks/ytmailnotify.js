@@ -1,5 +1,6 @@
 import notifier from 'mail-notifier';
 import bunyan from 'bunyan';
+import moment from 'moment';
 const moduleName = 'ytmailnotify';
 var log = bunyan.createLogger({name: moduleName});
 var discordClient;
@@ -7,16 +8,18 @@ var discordChannels;
 var keyv;
 var processMail = async mail => {
     if (mail.from.length == 0 || mail.from[0].address !== 'noreply@youtube.com') {
-        log.info(`non-youtube mail received. ${mail.subject}`)
+        log.info(`non-youtube mail received. ${mail.subject} ${mail.date}`)
         return
     }
-    log.info(`received mail ${mail.subject}`)
+    log.info(`received mail ${mail.subject} ${mail.date}`)
     var url = mail.text.match(/(http:\/\/www\.youtube\.com\/watch\?v=)([^\&\\\s]+)/);
     if (url) {
         let videoId = url[2];
         let videoKey = "notified#"+videoId;
         let notified = await keyv.get(videoKey)
-        if (!notified && discordClient && discordChannels){
+        if (moment().subtract(600,'seconds') > moment(mail.date)){
+            log.warn("mail date too old. ignore.")
+        } else if (!notified && discordClient && discordChannels){
             let msg = `@everyone ${mail.subject} 不要忘记点赞哦。 ${url[1]}${videoId}`;
             for (var discordChannel of discordChannels){
                 log.info('This video\'s ID is %s.', videoId);
