@@ -46,8 +46,15 @@ var task = {
         discordChannels = settings.discordChannels;
         discordClient = discord;
         notifier(imap)
-            .on('mail', processMail)
-            .start();
+        .on('connected', () => {
+            log.info("server connected");
+        })
+        .on('mail', processMail)
+        .on('error', (err) => {
+            log.error(err);
+        })
+        .on('end', () => notifier.start()) // session closed
+        .start();
     }
 };
 module.exports = task;
