@@ -48,7 +48,7 @@ var task = {
         keyv = kv;
         discordChannels = settings.discordChannels;
         discordClient = discord;
-        notifier(imap)
+        n = notifier(imap)
         .on('connected', () => {
             log.info("server connected");
         })
