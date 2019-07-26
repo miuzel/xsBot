@@ -57,7 +57,7 @@ var task = {
             log.error(err);
         })
         .on('end', () => n.start()) // session closed
-        .start();
+        n.start();
     }
 };
 module.exports = task;
