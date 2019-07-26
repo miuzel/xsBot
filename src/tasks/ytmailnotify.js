@@ -48,7 +48,7 @@ var task = {
         keyv = kv;
         discordChannels = settings.discordChannels;
         discordClient = discord;
-        notifier(imap)
+        n = notifier(imap)
         .on('connected', () => {
             log.info("server connected");
         })
@@ -56,7 +56,7 @@ var task = {
         .on('error', (err) => {
             log.error(err);
         })
-        .on('end', () => notifier.start()) // session closed
+        .on('end', () => n.start()) // session closed
         .start();
     }
 };
