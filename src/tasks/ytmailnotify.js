@@ -33,7 +33,7 @@ var processMail = async mail => {
         }
     }
 }
-
+var n
 var task = {
     name: moduleName,
     start: (settings,discord,kv) => {
@@ -48,7 +48,7 @@ var task = {
         keyv = kv;
         discordChannels = settings.discordChannels;
         discordClient = discord;
-        n = notifier(imap)
+        notifier(imap)
         .on('connected', () => {
             log.info("server connected");
         })
