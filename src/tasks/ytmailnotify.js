@@ -55,8 +55,15 @@ var task = {
         .on('mail', processMail)
         .on('error', (err) => {
             log.error(err);
+            if(err.message && err.message === "read ECONNRESET"){
+                log.info("restarting...");
+                n.stop();
+            }
         })
-        .on('end', () => n.start()) // session closed
+        .on('end', () => {
+            log.info("restarting...");
+            n.start();
+        }) // session closed
         n.start();
     }
 };
