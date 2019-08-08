@@ -69,8 +69,8 @@ var newCrawler = (config) => {
                     log.error(err);
                 }
             }
-            log.info("Crawling livestream Done");
             await done();
+            log.info("Crawling livestream Done");
         }
     });
 }
@@ -89,7 +89,7 @@ var task = {
         discordClient = discord;
         init()
         scanForLive(config);
-        setInterval(scanForLive(config), settings.interval);
+        setInterval(() => scanForLive(config), settings.interval);
     }
 };
 module.exports = task;

@@ -78,6 +78,7 @@ var newCrawler = (config) => {
                 }
             }
             await done();
+            log.info("Crawling youtube Done");
         }
     });
 }
