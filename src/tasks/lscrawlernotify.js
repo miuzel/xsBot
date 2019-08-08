@@ -6,7 +6,6 @@ var window = new Map();
 var discordClient;
 var keyv;
 var config;
-var sessionOK = true;
 var c;
 var backendChannel;
 var processLiveInfo = async ($,e) => {
@@ -37,10 +36,8 @@ var processLiveInfo = async ($,e) => {
         log.error(err)
     }
 }
-var scanForLive = () => { 
-    if(sessionOK) {
-        c.queue('https://livestream.com/accounts/27235681');
-    }
+var scanForLive = (config) => { 
+    c.queue(config.url);
 }
 var newCrawler = (config) => {
     return new Crawler({
@@ -54,7 +51,9 @@ var newCrawler = (config) => {
             }else{
                 var $ = res.$;
                 try {
-                    if ($("title").text().match(/Rolfoundation/)){
+                    let pattern = new RegExp(config.title)
+                    if ($("title").text().match(pattern)){
+                        log.info("Title match.");
                         $(".is_live").each( (_,e) => {
                             processLiveInfo($,e);
                         })
@@ -70,17 +69,13 @@ var newCrawler = (config) => {
                     log.error(err);
                 }
             }
+            log.info("Crawling livestream Done");
             await done();
         }
     });
 }
 var init = () => {
     c = newCrawler(config);
-    // c.on('schedule',function(options){
-    //     options.headers = {  
-    //         cookie: config.cookie
-    //     };
-    // });
     backendChannel = discordClient
     .guilds.find(guild => guild.name === "mxtest")
     .channels.find(ch => ch.name === "常规")
@@ -93,7 +88,7 @@ var task = {
         keyv = kv;
         discordClient = discord;
         init()
-        scanForLive();
+        scanForLive(config);
         setInterval(scanForLive, settings.interval);
     }
 };
