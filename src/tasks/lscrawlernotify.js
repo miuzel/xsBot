@@ -89,7 +89,7 @@ var task = {
         discordClient = discord;
         init()
         scanForLive(config);
-        setInterval(scanForLive, settings.interval);
+        setInterval(scanForLive(config), settings.interval);
     }
 };
 module.exports = task;
