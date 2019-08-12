@@ -1,6 +1,8 @@
 var Crawler = require("crawler");
 import bunyan from 'bunyan';
 const moduleName = 'ytcrawlernotify';
+const Discord = require('discord.js');
+const urllib = require("url");
 var log = bunyan.createLogger({name: moduleName});
 var window = new Map();
 var discordClient;
@@ -11,11 +13,16 @@ var c;
 var backendChannel;
 var processLiveInfo = async ($,e) => {
     try {
-        var item = $(e).parent().parent().parent().parent();
+        var item = $(e).parent().parent().parent().parent().parent();
         var title = $(item).find(".yt-lockup-title a.spf-link").text();
         var url = 'https://www.youtube.com'+ $(item).find(".yt-lockup-title a.spf-link").attr('href');
         var channel = $(item).find(".yt-lockup-byline a.spf-link").text();
         var meta = $(item).find("ul.yt-lockup-meta-info li").text();
+        var channelUrl = $(item).find(".yt-uix-sessionlink a.spf-link").attr('href')
+        var image = $(item).find(".yt-thumb-simple img").attr("src")
+        
+        var result = urllib.parse(image);
+        image= result.protocol +"//"+ result.hostname + result.pathname
         var videoId;
         var m = url.match(/v=(.*)$/);
         if(m){
@@ -24,13 +31,31 @@ var processLiveInfo = async ($,e) => {
         if(!videoId){
             log.error("cannot find videoId. sth. went wrong:"+item)
         }
+        let shortUrl = `https://youtu.be/${videoId}`
         let videoKey = "notified#"+videoId;
         let notified = await keyv.get(videoKey)
-        log.info(`${channel} LIVE now：${title} ${meta} videoId: ${videoId} url: ${url}`)
+        log.info(`${channel} LIVE now：${title} ${meta} videoId: ${videoId} url: ${shortUrl}`)
         if (!notified && discordClient && config.discordChannels){
             log.info(`First occurance. Report to discord.`)
             // sending msgs to all subscribed channels
-            let msg = `@everyone ${channel} 开始直播啦 不要忘记点赞，欢迎大家跟我聊天哦。`+"\n"+url;
+            let msg
+            try {
+                msg = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor(channel,config.channelThumnail[channel])
+                .setTitle(title)
+                .setDescription(`[【${channel}】](${url}) 开始直播啦 ${meta}\n${url} @everyone`)
+                .setURL(url)
+                .setImage(image)
+                .setThumbnail(config.channelThumnail[channel])
+                .setTimestamp()
+                .setFooter(channel+" @ YOUTUBE","https://lh3.googleusercontent.com/nXQvCaVfnPLJ3TZ6QO96fySPPjuEDDTcO-HA8gf9mwFWSsqCC0g0ZQuLpAqTNAxlt3evBLmP-A=w128-h128-e365")
+    
+            }catch {
+                msg = `@everyone ${channel} 开始直播啦 不要忘记点赞，欢迎大家跟我聊天哦。`+"\n"+url;
+            }
+
+            //let
             for (var discordChannel of config.discordChannels){
                 const [guildName,channelName]  = discordChannel.split('#');
                 let channel = discordClient
@@ -62,6 +87,9 @@ var newCrawler = (config) => {
                 var $ = res.$;
                 try {
                     if ($("title").text().match(/Subscriptions/)){
+                        // $(".badge-style-type-live-now").each( (_,e) => {
+                        //     processLiveInfo($,e);
+                        // })
                         $(".yt-badge-live").each( (_,e) => {
                             processLiveInfo($,e);
                         })
