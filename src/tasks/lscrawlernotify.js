@@ -3,6 +3,7 @@ var Crawler = require("crawler");
 const Discord = require('discord.js');
 const moduleName = 'lscrawlernotify';
 const fetch = require('node-fetch');
+const moment = require('moment');
 var log = bunyan.createLogger({name: moduleName});
 var window = new Map();
 var discordClient;
@@ -30,12 +31,17 @@ var processLiveInfo = async (x) => {
             fetch(playerApi)
             .then(res => res.json())
             .then(data => {
+                let streamAt = moment(data.live_video_post.streamed_at).locale(config.locale).from()
                 let msg = new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setTitle(data.stream_title ? data.stream_title : "livestream直播")
-                .setDescription(`@everyone ${config.title} ${x.owner.full_name} 开始直播啦，赶快抢沙发去。\n 链接： ${url}`)
+                .setDescription(`[【${config.title}】](${url}) ${streamAt} 开始直播啦\n${url} @everyone`)
+                .setURL(url)
                 .setImage(data.secure_thumbnail_url)
                 .setThumbnail(x.logo.secure_medium_url)
+                .setTimestamp()
+                .setFooter(x.owner.full_name+" @ Livestream - Vimeo")
+
 
                 for (var discordChannel of config.discordChannels){
                     const [guildName,channelName]  = discordChannel.split('#');
@@ -43,7 +49,7 @@ var processLiveInfo = async (x) => {
                     .guilds.find(guild => guild.name === guildName)
                     .channels.find(ch => ch.name === channelName)
                     channel.send(msg);
-                    log.info(`Msg ${msg} sent to ${discordChannel}`)
+                    log.info(`Msg ${msg.description} sent to ${discordChannel}`)
                 }           
             }).then(() => {
                 keyv.set(videoKey,true)
