@@ -54,7 +54,7 @@ var msgToMe = m => {
       trimed.startsWith("大家好!")){
     return m.content.trim()
   }
-  if( trimed.match(/情愿/) || 
+  if( trimed.match(/请愿/) || 
      trimed.match(/白宫.*签名/)){
     return m.content.trim()
   }
