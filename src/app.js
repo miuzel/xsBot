@@ -46,17 +46,11 @@ var tryDialog = async m => {
 
 var msgToMe = m => {
   const trimed = m.content.trim().toLowerCase();
-  if( trimed.startsWith("hi!") || trimed.startsWith("hello") || 
-      trimed === "大家好" || 
-      trimed === "大家好呀" || 
-      trimed === "我来啦" || 
-      trimed.startsWith("大家好！") || 
-      trimed.startsWith("大家好!")){
-    return m.content.trim()
-  }
-  if( trimed.match(/请愿/) || 
-     trimed.match(/白宫.*签名/)){
-    return m.content.trim()
+  for ( let pattern of config.mustReplyPatterns){
+    const p = new RegExp(pattern)
+    if(trimed.match(p)){
+      return m.content.trim()
+    }
   }
   if( trimed.startsWith(prefix)){
     return m.content.trim().slice(prefix.length).trim()
