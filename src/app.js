@@ -46,6 +46,16 @@ var tryDialog = async m => {
 
 var msgToMe = m => {
   const trimed = m.content.trim().toLowerCase();
+  if( trimed.startsWith("Hi!") || 
+      trimed === "大家好" || 
+      trimed.startsWith("大家好！") || 
+      trimed.startsWith("大家好!")){
+    return m.content.trim()
+  }
+  if( trimed.match(/情愿/) || 
+     trimed.match(/白宫.*签名/)){
+    return m.content.trim()
+  }
   if( trimed.startsWith(prefix)){
     return m.content.trim().slice(prefix.length).trim()
   }
