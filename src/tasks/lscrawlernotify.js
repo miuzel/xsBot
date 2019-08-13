@@ -32,7 +32,7 @@ var processLiveInfo = async (x) => {
             .then(res => res.json())
             .then(data => {
                 let streamAt = moment(data.live_video_post.streamed_at).locale(config.locale).from()
-                let msg = new Discord.MessageEmbed()
+                let msg = new Discord.RichEmbed()
                 .setColor('#0099ff')
                 .setTitle(data.stream_title ? data.stream_title : "livestream直播")
                 .setDescription(`[【${config.title}】](${url}) ${streamAt} 开始直播啦\n${url} @everyone`)

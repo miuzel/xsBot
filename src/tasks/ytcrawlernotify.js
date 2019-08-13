@@ -40,7 +40,7 @@ var processLiveInfo = async ($,e) => {
             // sending msgs to all subscribed channels
             let msg
             try {
-                msg = new Discord.MessageEmbed()
+                msg = new Discord.RichEmbed()
                 .setColor('#0099ff')
                 .setAuthor(channel,config.channelThumnail[channel])
                 .setTitle(title)
