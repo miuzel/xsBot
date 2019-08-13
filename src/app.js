@@ -46,8 +46,10 @@ var tryDialog = async m => {
 
 var msgToMe = m => {
   const trimed = m.content.trim().toLowerCase();
-  if( trimed.startsWith("Hi!") || 
+  if( trimed.startsWith("hi!") || trimed.startsWith("hello") || 
       trimed === "大家好" || 
+      trimed === "大家好呀" || 
+      trimed === "我来啦" || 
       trimed.startsWith("大家好！") || 
       trimed.startsWith("大家好!")){
     return m.content.trim()
