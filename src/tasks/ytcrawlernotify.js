@@ -17,10 +17,9 @@ var processLiveInfo = async ($,e) => {
         var title = $(item).find(".yt-lockup-title a.spf-link").text();
         var url = 'https://www.youtube.com'+ $(item).find(".yt-lockup-title a.spf-link").attr('href');
         var channel = $(item).find(".yt-lockup-byline a.spf-link").text();
-        var meta = $(item).find("ul.yt-lockup-meta-info li").text();
+        var meta = $(item).find("ul.yt-lockup-meta-info li").text().split(" ");
         var channelUrl = $(item).find(".yt-uix-sessionlink a.spf-link").attr('href')
-        var image = $(item).find(".yt-thumb-simple img").attr("src")
-        
+        // var image = $(item).find(".yt-thumb-simple img").attr("src")
         var result = urllib.parse(image);
         image= result.protocol +"//"+ result.hostname + result.pathname
         var videoId;
@@ -31,6 +30,7 @@ var processLiveInfo = async ($,e) => {
         if(!videoId){
             log.error("cannot find videoId. sth. went wrong:"+item)
         }
+        var image = `http://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
         let shortUrl = `https://youtu.be/${videoId}`
         let videoKey = "notified#"+videoId;
         let notified = await keyv.get(videoKey)
@@ -42,9 +42,9 @@ var processLiveInfo = async ($,e) => {
             try {
                 msg = new Discord.RichEmbed()
                 .setColor('#0099ff')
-                .setAuthor(channel,config.channelThumnail[channel])
-                .setTitle(title)
-                .setDescription(`[【${channel}】](${url}) 开始直播啦 ${meta}\n${url} @everyone`)
+                .setAuthor(`${channel} 🔴 开始直播`,config.channelThumnail[channel])
+                .setTitle(`${title}`)
+                .setDescription(`:film_frames: ${shortUrl} @everyone\n目前${meta[0]}人正在观看`)
                 .setURL(url)
                 .setImage(image)
                 .setThumbnail(config.channelThumnail[channel])

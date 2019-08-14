@@ -3,24 +3,58 @@ import bunyan from 'bunyan';
 import moment from 'moment';
 const moduleName = 'ytmailnotify';
 var log = bunyan.createLogger({name: moduleName});
+const Discord = require('discord.js');
 var discordClient;
 var discordChannels;
 var keyv;
+var config;
 var processMail = async mail => {
     if (mail.from.length == 0 || mail.from[0].address !== 'noreply@youtube.com') {
         log.info(`non-youtube mail received. ${mail.subject} ${mail.date}`)
         return
     }
     log.info(`received mail ${mail.subject} ${mail.date}`)
-    var url = mail.text.match(/(http:\/\/www\.youtube\.com\/watch\?v=)([^\&\\\s]+)/);
-    if (url) {
-        let videoId = url[2];
+    //var url = mail.html.match(/(http:\/\/www\.youtube\.com\/watch\?v=)([^\&\\\s]+)/)
+    var m = mail.text.match(/\/watch%3Fv%3D([^%]+)%26/)
+    if (m) {
+        let videoId = m[1];
+        let url = 'https://www.youtube.com/watch?v=' + videoId
+        let shortUrl = 'https://youtu.be/'+videoId
         let videoKey = "notified#"+videoId;
         let notified = await keyv.get(videoKey)
         if (moment().subtract(600,'seconds') > moment(mail.date)){
             log.warn("mail date too old. ignore.")
         } else if (!notified && discordClient && discordChannels){
-            let msg = `@everyone ${mail.subject} 不要忘记点赞哦。 ${url[1]}${videoId}`;
+            let image = `http://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+            let channel
+            let isLive = mail.subject.match(/^🔴/)
+            for(let channelName in config.channelThumnail){
+                const p1 = new RegExp( `^${channelName}`)
+                const p2 = new RegExp( `“${channelName}”`)
+                if(mail.subject.match(p1) || mail.subject.match(p2)){
+                    channel = channelName
+                }
+            }
+            let msg
+            let title = mail.html.match(/video-title-font-class[^>]+>([^<]*)</) 
+            title = title ? title[1]: ""
+            try {
+                msg = new Discord.RichEmbed()
+                .setColor('#0099ff')
+                .setAuthor(`${channel}` +(isLive? " 🔴 直播中 ":" 上传了")  ,config.channelThumnail[channel])
+                .setTitle(title)
+                .setDescription(`:film_frames: ${shortUrl} @everyone`)
+                .setURL(url)
+                .setImage(image)
+                .setThumbnail(config.channelThumnail[channel])
+                .setTimestamp()
+                .setFooter(channel+" @ YOUTUBE","https://lh3.googleusercontent.com/nXQvCaVfnPLJ3TZ6QO96fySPPjuEDDTcO-HA8gf9mwFWSsqCC0g0ZQuLpAqTNAxlt3evBLmP-A=w128-h128-e365")
+    
+            }catch(err) {
+                log.error(err)
+                msg = `@everyone ${mail.subject} 不要忘记点赞哦。 ${url[1]}${videoId}`;
+            }
+
             for (var discordChannel of discordChannels){
                 log.info('This video\'s ID is %s.', videoId);
                 const [guildName,channelName]  = discordChannel.split('#');
@@ -31,6 +65,8 @@ var processMail = async mail => {
             }
             await keyv.set(videoKey,true)
         }
+    } else {
+        console.log(mail.text)
     }
 }
 var n
@@ -45,6 +81,7 @@ var task = {
             tls: true,// use secure connection
             tlsOptions: { rejectUnauthorized: false }
         };
+        config = settings
         keyv = kv;
         discordChannels = settings.discordChannels;
         discordClient = discord;
