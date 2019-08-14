@@ -20,8 +20,8 @@ var processLiveInfo = async ($,e) => {
         var meta = $(item).find("ul.yt-lockup-meta-info li").text().split(" ");
         var channelUrl = $(item).find(".yt-uix-sessionlink a.spf-link").attr('href')
         // var image = $(item).find(".yt-thumb-simple img").attr("src")
-        var result = urllib.parse(image);
-        image= result.protocol +"//"+ result.hostname + result.pathname
+        //var result = urllib.parse(image);
+        //image= result.protocol +"//"+ result.hostname + result.pathname
         var videoId;
         var m = url.match(/v=(.*)$/);
         if(m){
