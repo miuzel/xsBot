@@ -29,8 +29,8 @@ keyv.on('error', err => log.error('Keyv connection error:', err));
  */
 client.on('ready',  () => {
   log.info('I am ready!');
-  // var tasks = ['ytlivenotify','ytmailnotify','ytcrawlernotify']//
   var tasks = ['ytcrawlernotify','ytmailnotify','lscrawlernotify']
+  // var tasks = ['ytmailnotify']
   for (var t of tasks ){
     var task = require(`./tasks/${t}`)
     task.start(config.tasks[task.name],client,keyv);
@@ -49,12 +49,7 @@ var msgToMe = m => {
     return false 
   }
   const trimed = m.content.trim().toLowerCase();
-  for ( let pattern of config.mustReplyPatterns){
-    const p = new RegExp(pattern)
-    if(trimed.match(p)){
-      return m.content.trim()
-    }
-  }
+  
   if( trimed.startsWith(prefix)){
     return m.content.trim().slice(prefix.length).trim()
   }
@@ -67,6 +62,12 @@ var msgToMe = m => {
   const matches = trimed.match(/^(<@!?\d+>)/);
   if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
     return trimed.slice(matches[1].length).trim()
+  }
+  for ( let pattern of config.mustReplyPatterns){
+    const p = new RegExp(pattern)
+    if(trimed.match(p)){
+      return m.content.trim()
+    }
   }
   return false;
 } 
