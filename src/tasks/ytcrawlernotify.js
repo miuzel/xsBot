@@ -19,7 +19,7 @@ var processLiveInfo = async ($,e) => {
         var channel = $(item).find(".yt-lockup-byline a.spf-link").text();
         var meta = $(item).find("ul.yt-lockup-meta-info li").text().split(" ");
         if(meta){
-            meta = meta[0] + "人正在观看"
+            meta = meta[0] 
         }
         var channelUrl = $(item).find(".yt-uix-sessionlink a.spf-link").attr('href')
         // var image = $(item).find(".yt-thumb-simple img").attr("src")
@@ -47,7 +47,7 @@ var processLiveInfo = async ($,e) => {
                 .setColor('#0099ff')
                 .setAuthor(`${channel} 🔴 开始直播`,config.channelThumnail[channel])
                 .setTitle(`${title}`)
-                .setDescription(`:film_frames: ${shortUrl} @everyone\n目前${meta}`)
+                .setDescription(`:film_frames: ${shortUrl} @everyone\n现在${meta ? meta : "还没有"}人正在观看"`)
                 .setURL(url)
                 .setImage(image)
                 .setThumbnail(config.channelThumnail[channel])
