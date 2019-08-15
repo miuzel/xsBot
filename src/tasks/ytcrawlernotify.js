@@ -47,7 +47,7 @@ var processLiveInfo = async ($,e) => {
                 .setColor('#0099ff')
                 .setAuthor(`${channel} 🔴 开始直播`,config.channelThumnail[channel])
                 .setTitle(`${title}`)
-                .setDescription(`:film_frames: ${shortUrl} @everyone\n现在${meta ? meta : "还没有"}人正在观看"`)
+                .setDescription(`:film_frames: ${shortUrl} @everyone\n现在${meta ? meta : "还没有"}人正在观看`)
                 .setURL(url)
                 .setImage(image)
                 .setThumbnail(config.channelThumnail[channel])
