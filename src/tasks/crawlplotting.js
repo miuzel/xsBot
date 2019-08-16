@@ -90,24 +90,24 @@ var processPlotData = async (x) => {
             delta = data[0].y
             deltaName = "当前"
         }
-        console.log(data)
         let image = await generateNewPlot([...data],x[config.field2])
 
-        log.info(`${config.title} now videoId: ${x[config.field1]}`)
+        log.info(`${config.title} now: ${x[config.field1]}`)
         if (data.length % config.gap === 0 && discordClient && config.discordChannels){
-            log.info(`First occurance. Report to discord.`)
-            let msg = `@everyone ${config.title} 数据更新在这里。`
+            log.info(`Report to discord.`)
+            let msg = `@everyone ${config.title} 最新数据:  **${x[config.field1]}** `
             let msgEmbed = new Discord.RichEmbed()
             .setColor('#ee3377')
-            .setAuthor(config.title +" 🔴 数据直播")
-            .setTitle(`最新数据播报 截至目前，已有${x[config.field1]}人联署${config.title}\n`)
+            .setAuthor(config.title +" 🔴 数据直播",config.authorLogo)
+            .setTitle(`最新数据播报 截至目前，已有 **${x[config.field1]}** 人联署${config.title}\n`)
             .addField(`自${deltaName}新增`,`${delta}`,true)
             .addField("还需要",`${x[config.field2]}`,true)
+            .setThumbnail(config.thumbnail)
             .setURL(config.pageUrl)
             .attachFile({attachment: image, name: "plot.png"})
             .setImage("attachment://plot.png",'Plot')
             .setTimestamp()
-            .setFooter(config.footer,"")
+            .setFooter(config.footer,config.footerUrl)
 
             for (var discordChannel of config.discordChannels){
                 const [guildName,channelName]  = discordChannel.split('#');
