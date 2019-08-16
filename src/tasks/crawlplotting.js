@@ -74,13 +74,13 @@ var processPlotData = async (x) => {
         let delta
         let deltaName
         let data = await keyv.get(plottingKey)
-        if(data)
+        if(data && data.length > config.gap)
         {
             data = data.concat([{
                 x: new Date(),
                 y: x[config.field1]
             }])
-            delta = (data.length > config.gap) ? data[data.length-config.gap].y - data[data.length-config.gap-1].y : data[0].y
+            delta =  data[data.length-config.gap].y - data[data.length-config.gap-1].y 
             deltaName = moment(data[data.length-config.gap-1].x).locale(config.locale).from()
         } else {
             data = [{
