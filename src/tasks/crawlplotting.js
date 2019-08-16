@@ -74,27 +74,29 @@ var processPlotData = async (x) => {
         let delta
         let deltaName
         let data = await keyv.get(plottingKey)
-        if(data && data.length > config.gap)
+        if(data)
         {
             data = data.concat([{
                 x: new Date(),
                 y: x[config.field1]
             }])
-            delta =  data[data.length-config.gap].y - data[data.length-config.gap-1].y 
-            deltaName = moment(data[data.length-config.gap-1].x).locale(config.locale).from()
         } else {
             data = [{
                 x: new Date(),
                 y: x[config.field1]
             }]
-            delta = data[0].y
-            deltaName = "当前"
         }
-        let image = await generateNewPlot([...data],x[config.field2])
-
         log.info(`${config.title} now: ${x[config.field1]}`)
         if (data.length % config.gap === 0 && discordClient && config.discordChannels){
             log.info(`Report to discord.`)
+            let image = await generateNewPlot([...data],x[config.field2])
+            if (data.length > config.gap) {
+                delta = data[data.length - config.gap].y - data[data.length - config.gap - 1].y
+                deltaName = moment(data[data.length - config.gap - 1].x).locale(config.locale).from()
+            } else {
+                delta = data[0].y
+                deltaName = "当前"
+            }
             let msg = `@everyone ${config.title} 最新数据:  **${x[config.field1]}** `
             let msgEmbed = new Discord.RichEmbed()
             .setColor('#ee3377')
