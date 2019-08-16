@@ -41,13 +41,14 @@ var processLiveInfo = async ($,e) => {
         if (!notified && discordClient && config.discordChannels){
             log.info(`First occurance. Report to discord.`)
             // sending msgs to all subscribed channels
-            let msg
+            let msg = `@everyone ${channel} 开始直播啦 不要忘记点赞`
+            let msgEmbed
             try {
-                msg = new Discord.RichEmbed()
+                msgEmbed = new Discord.RichEmbed()
                 .setColor('#0099ff')
                 .setAuthor(`${channel} 🔴 开始直播`,config.channelThumnail[channel])
                 .setTitle(`${title}`)
-                .setDescription(`:film_frames: ${shortUrl} @everyone\n现在${meta ? meta : "还没有"}人正在观看`)
+                .setDescription(`:film_frames: ${shortUrl}\n现在${meta ? meta : "还没有"}人正在观看`)
                 .setURL(url)
                 .setImage(image)
                 .setThumbnail(config.channelThumnail[channel])
@@ -64,7 +65,9 @@ var processLiveInfo = async ($,e) => {
                 let channel = discordClient
                 .guilds.find(guild => guild.name === guildName)
                 .channels.find(ch => ch.name === channelName)
-                channel.send(msg);
+                channel.send(msg,{
+                    embed: msgEmbed
+                });
             }
             await keyv.set(videoKey,true)
         }
