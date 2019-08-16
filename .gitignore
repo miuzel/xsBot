@@ -7,7 +7,7 @@ yarn-error.log*
 settings.json
 gcpkey.json
 *.sqlite
-
+*.png
 # Runtime data
 pids
 *.pid
