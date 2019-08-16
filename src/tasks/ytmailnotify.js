@@ -35,15 +35,16 @@ var processMail = async mail => {
                     channel = channelName
                 }
             }
-            let msg
+            let msgEmbed
+            let msg = `@everyone ${channel} ${(isLive? " 开始直播啦，":" 上传了新的视频，")}不要忘记点赞哦`
             let title = mail.html.match(/video-title-font-class[^>]+>([^<]*)</) 
             title = title ? title[1]: ""
             try {
-                msg = new Discord.RichEmbed()
+                msgEmbed = new Discord.RichEmbed()
                 .setColor('#0099ff')
                 .setAuthor(`${channel}` +(isLive? " 🔴 直播中 ":" 上传了")  ,config.channelThumnail[channel])
                 .setTitle(title)
-                .setDescription(`:film_frames: ${shortUrl} @everyone`)
+                .setDescription(`:film_frames: ${shortUrl}`)
                 .setURL(url)
                 .setImage(image)
                 .setThumbnail(config.channelThumnail[channel])
@@ -61,7 +62,9 @@ var processMail = async mail => {
                 let channel = discordClient
                 .guilds.find(guild => guild.name === guildName)
                 .channels.find(ch => ch.name === channelName)
-                channel.send(msg);
+                channel.send(msg,{
+                    embed: msgEmbed
+                });
             }
             await keyv.set(videoKey,true)
         }

@@ -32,15 +32,17 @@ var processLiveInfo = async (x) => {
             .then(res => res.json())
             .then(data => {
                 let streamAt = moment(data.live_video_post.streamed_at).locale(config.locale).from()
-                let msg = new Discord.RichEmbed()
+                let msg = `@everyone ${config.title} 开始直播啦，赶快去抢沙发吧。`
+                let msgEmbed = new Discord.RichEmbed()
                 .setColor('#0099ff')
-                .setTitle(data.stream_title ? data.stream_title +" 🔴 直播开始" : "livestream直播 🔴 直播开始")
-                .setDescription(`[【${config.title}】](${url}) ${streamAt} 开始直播啦\n${url} @everyone`)
+                .setAuthor(data.stream_title ? data.stream_title +" 🔴 直播中" : "livestream直播 🔴 直播中","https://img.new.livestream.com/accounts/00000000019f9561/c135cdc2-fecb-4630-adf6-ac97bf6e126b_170x170.png")
+                .setDescription(`[【${config.title}】](${url}) ${streamAt} 开始直播啦\n${url}`)
+                .setTitle(data.live_video_post.caption)
                 .setURL(url)
                 .setImage(data.secure_thumbnail_url)
                 .setThumbnail(x.logo.secure_medium_url)
                 .setTimestamp()
-                .setFooter(x.owner.full_name+" @ Livestream - Vimeo")
+                .setFooter(x.owner.full_name+" @ Livestream - Vimeo","https://cdn.iconscout.com/icon/free/png-256/livestream-283158.png")
 
 
                 for (var discordChannel of config.discordChannels){
@@ -48,7 +50,9 @@ var processLiveInfo = async (x) => {
                     let channel = discordClient
                     .guilds.find(guild => guild.name === guildName)
                     .channels.find(ch => ch.name === channelName)
-                    channel.send(msg);
+                    channel.send(msg,{
+                        embed: msgEmbed
+                    });
                     log.info(`Msg ${msg.description} sent to ${discordChannel}`)
                 }           
             }).then(() => {
