@@ -34,7 +34,7 @@ var generateNewPlot = async (points,target) => {
           pointRadius: 0,
           hoverBackgroundColor: "rgba(255,99,132,0.4)",
           hoverBorderColor: "rgba(255,99,132,1)",
-          data: points.map(p => target),
+          data: points.map(p => target-p.y),
         }
          ]
       };
@@ -42,11 +42,17 @@ var generateNewPlot = async (points,target) => {
         type: 'line',
         data: data,
         options : {
+            legend: {
+                labels: {
+                    defaultFontFamily:"'Helvetica Neue', 'Helvetica', 'Arial', 'WenQuanYi Micro Hei Mono',sans-serif"
+                }
+            },
             animation: {
                 duration: 0 // general animation time
             },
             scales: {
                 yAxes: [{
+                  stacked: true,
                   gridLines: {
                     display: true,
                     color: "rgba(255,99,132,0.2)"
@@ -95,7 +101,7 @@ var processPlotData = async (x) => {
         log.info(`${config.title} now: ${x[config.field1]}`)
         if (data.length % config.gap === 0 && discordClient && config.discordChannels){
             log.info(`Report to discord.`)
-            let image = await generateNewPlot([...data],x[config.field2])
+            let image = await generateNewPlot([...data],x[config.field3])
             if (data.length > config.gap) {
                 delta = data[data.length - 1].y - data[data.length - config.gap - 1].y
                 deltaName = moment(data[data.length - config.gap - 1].x).locale(config.locale).from()
