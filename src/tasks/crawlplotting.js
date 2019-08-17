@@ -76,6 +76,8 @@ var processPlotData = async (x) => {
         let plottingKey = "plot#"+config.plottingID;
         let delta
         let deltaName
+        let delta1
+        let deltaName1
         let atEveryone
         let data = await keyv.get(plottingKey)
         if(data)
