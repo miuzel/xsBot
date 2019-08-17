@@ -100,7 +100,14 @@ var processPlotData = async (x) => {
                 atEveryone = isAtEveryone(data[data.length - 1].y,data[data.length - config.gap-1].y)
             } else {
                 delta = data[0].y
-                deltaName = "当前"
+                deltaName = "目前"
+            }
+            if (data.length > config.gap * 4) {
+                delta1 = data[data.length - 1].y - data[data.length - (config.gap*4) - 1].y
+                deltaName1 = moment(data[data.length - (config.gap*4) - 1].x).locale(config.locale).from()
+            } else {
+                delta1 = data[0].y
+                deltaName1 = "目前"
             }
             let msg = `${atEveryone} ${config.title} 最新数据:  **${x[config.field1]}** `
             let msgEmbed = new Discord.RichEmbed()
@@ -108,6 +115,7 @@ var processPlotData = async (x) => {
             .setAuthor(config.title +" 🔴 数据直播",config.authorLogo)
             .setTitle(`最新数据播报 截至目前，已有 **${x[config.field1]}** 人联署${config.title}\n`)
             .addField(`自${deltaName}新增`,`${delta}`,true)
+            .addField(`自${deltaName1}新增`,`${delta1}`,true)
             .addField("还需要",`${x[config.field2]}`,true)
             .setThumbnail(config.thumbnail)
             .setURL(config.pageUrl)
