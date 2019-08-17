@@ -64,6 +64,9 @@ var generateNewPlot = async (points,target) => {
     })
     return chartNode.getImageBuffer('image/png')
 }
+var isAtEveryone = (last1,last2) => {
+    return Math.floor(last1/10000) > Math.floor(last2/10000) ? "@everyone，" : "大家好，"
+}
 var processPlotData = async (x) => {
     console.log("find new plotting data")
     if(!x[config.field1]){
@@ -73,6 +76,7 @@ var processPlotData = async (x) => {
         let plottingKey = "plot#"+config.plottingID;
         let delta
         let deltaName
+        let atEveryone
         let data = await keyv.get(plottingKey)
         if(data)
         {
@@ -93,11 +97,12 @@ var processPlotData = async (x) => {
             if (data.length > config.gap) {
                 delta = data[data.length - config.gap].y - data[data.length - config.gap - 1].y
                 deltaName = moment(data[data.length - config.gap - 1].x).locale(config.locale).from()
+                atEveryone = isAtEveryone(data[data.length - config.gap].y,data[data.length - config.gap-1].y)
             } else {
                 delta = data[0].y
                 deltaName = "当前"
             }
-            let msg = `@everyone ${config.title} 最新数据:  **${x[config.field1]}** `
+            let msg = `${atEveryone} ${config.title} 最新数据:  **${x[config.field1]}** `
             let msgEmbed = new Discord.RichEmbed()
             .setColor('#ee3377')
             .setAuthor(config.title +" 🔴 数据直播",config.authorLogo)
