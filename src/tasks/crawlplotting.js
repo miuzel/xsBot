@@ -1,30 +1,64 @@
 import bunyan from 'bunyan';
-import { resolve } from 'dns';
 var Crawler = require("crawler");
 const Discord = require('discord.js');
 const moduleName = 'crawlplotting';
 const moment = require('moment');
 const ChartjsNode = require('chartjs-node');
 var log = bunyan.createLogger({name: moduleName});
-var window = new Map();
 var discordClient;
 var keyv;
 var config;
 var c;
 var backendChannel;
+
+var downSampling = (array, shards) => {
+    if(array.length <= shards * 4){
+        return array
+    }
+    let arrayClone = [...array]
+    let arrayRes = []
+    let numberEachShard = Math.floor(array.length / shards) 
+
+    while(arrayClone.length / numberEachShard > 1){
+        let shard = arrayClone.splice(0,numberEachShard)
+        let shardArray = []
+        let start , end , max ,min 
+        start = shard[0]
+        max = shard[0]
+        min = shard[0]
+        end = shard[shard.length-1]
+        for ( let p of shard){
+            if(p.y > max.y){
+                max = p
+            }
+            if(p.y < min.y){
+                min = p
+            }
+        }
+        shardArray = [start,max,min,end].sort((a,b) => a.x > b.x)
+        shardArray = shardArray.filter((item, pos) => {
+            return shardArray.indexOf(item) == pos;
+        })
+        arrayRes = arrayRes.concat(shardArray)
+    }
+    arrayRes = arrayRes.concat(arrayClone)
+    return arrayRes
+}
+
 var generateNewPlot = async (points,target) => {
     var chartNode = new ChartjsNode(1200, 600);
-    
+    var downsampled = downSampling(points,800)
     var data = {
-        labels: points.map(p=>p.x),
+        labels: downsampled.map(p=>p.x),
         datasets: [{
           label: config.title,
           backgroundColor: "rgba(143, 195, 50 ,0.2)",
           borderColor: "rgba(143, 195, 50 ,1)",
           borderWidth: 2,
+          pointRadius: 1,
           hoverBackgroundColor: "rgba(143, 195, 50 ,0.4)",
           hoverBorderColor: "rgba(143, 195, 50 ,1)",
-          data: points.map(p=>p.y),
+          data: downsampled.map(p=>p.y),
         },
         {
           label: "目标",
@@ -34,7 +68,7 @@ var generateNewPlot = async (points,target) => {
           pointRadius: 0,
           hoverBackgroundColor: "rgba(255,99,132,0.4)",
           hoverBorderColor: "rgba(255,99,132,1)",
-          data: points.map(p => target-p.y),
+          data: downsampled.map(p => target-p.y),
         }
          ]
       };
