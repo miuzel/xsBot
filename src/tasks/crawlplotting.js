@@ -95,9 +95,9 @@ var processPlotData = async (x) => {
             log.info(`Report to discord.`)
             let image = await generateNewPlot([...data],x[config.field2])
             if (data.length > config.gap) {
-                delta = data[data.length - config.gap].y - data[data.length - config.gap - 1].y
+                delta = data[data.length - 1].y - data[data.length - config.gap - 1].y
                 deltaName = moment(data[data.length - config.gap - 1].x).locale(config.locale).from()
-                atEveryone = isAtEveryone(data[data.length - config.gap].y,data[data.length - config.gap-1].y)
+                atEveryone = isAtEveryone(data[data.length - 1].y,data[data.length - config.gap-1].y)
             } else {
                 delta = data[0].y
                 deltaName = "当前"
