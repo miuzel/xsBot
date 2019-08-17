@@ -113,7 +113,7 @@ var processPlotData = async (x) => {
             let msgEmbed = new Discord.RichEmbed()
             .setColor('#ee3377')
             .setAuthor(config.title +" 🔴 数据直播",config.authorLogo)
-            .setTitle(`最新数据播报 截至目前，已有 **${x[config.field1]}** 人联署${config.title}\n`)
+            .setTitle(`截至目前，已有 **${x[config.field1]}** 人联署${config.title}\n`)
             .addField(`自${deltaName}新增`,`${delta}`,true)
             .addField(`自${deltaName1}新增`,`${delta1}`,true)
             .addField("还需要",`${x[config.field2]}`,true)
