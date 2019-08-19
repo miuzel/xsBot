@@ -4,13 +4,15 @@
 const { Client } = require('discord.js');
 const { config } = require('../settings');
 const async = require("async");
+const Keyv = require('keyv');
 // Create an instance of a Discord client
 const client = new Client();
 const token = config.token;
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-const [guildName,userName,text,concurrent] = process.argv.slice(2);
+const [guildName,userName,text,concurrent,taskid] = process.argv.slice(2);
 process.setMaxListeners(0)
+const keyv = new Keyv(`sqlite://./script.db`);
 
 client.on('ready',  () => {
     console.log(`I am ready! push DM to ${userName}`);
@@ -19,12 +21,14 @@ client.on('ready',  () => {
             guild.fetchMembers().then(g => {
                 let count = 0
                 let failed = 0
+                let failMembers = []
                 let countdown = (m,size) => {
                     count++
                     console.log("[DONE]"+m.user.username)
                     if(count>=size ){
                         console.log(count + " users sent. " + failed +" users failed.")
-                        console.log("Done")
+                        console.log("Done. FailMembers:")
+                        console.log(failMembers)
                         client.destroy()
                     }
                 }
@@ -35,13 +39,24 @@ client.on('ready',  () => {
                 }
                 if(userName === "@everyone"){
                     async.mapLimit(g.members.array(),concurrent, async m => {
+                        const taskKey = `script#${m.user.id}#DM#${taskid}`
+                        let done =  await keyv.get(taskKey) 
+                        let fails = 0
+                        while (!done && fails < 5){
                             console.log(`Send msg to ${m.user.username}#${m.user.discriminator}`)
                             try {
                                 await m.send(text)
+                                done = true
                             } catch (e){
+                                fails++
                                 handleErr(m,e)
+                                if (e.code === 50007){
+                                    failMembers = failMembers.concat([`${m.user.username}#${m.user.discriminator}`])
+                                    fails = 10
+                                }
                             }
-                            countdown(m,g.members.size)
+                        }
+                        countdown(m,g.members.size)
                     },err => err ? console.log(err) : null)
                 } else {
                     m = g.members.find(m => m.user.username === userName)
