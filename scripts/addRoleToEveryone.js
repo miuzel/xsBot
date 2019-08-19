@@ -13,22 +13,21 @@ process.setMaxListeners(0)
 
 client.on('ready',  () => {
     console.log(`I am ready! Updating role ${roleName} of members in ${guildName}`);
-
-    if (roleName && guildName){
-
-    }
-
     let guild = client.guilds.find(guild => guild.name === guildName)
     if (guild) {
         let role = guild.roles.find(role => role.name === roleName)
         if (role){
             guild.fetchMembers().then(g => {
-                Promise.all(g.members.map(m => addDelete === 'delete'? m.removeRole(role) : m.addRole(role)))
-                .finally(()=>{
-                    console.log("Done")
-                    client.destroy()
+                let count = 0
+                g.members.forEach(m => {
+                    addDelete === 'delete'? m.removeRole(role).catch(console.error) : m.addRole(role).catch(console.error)
+                    console.log(`role ${roleName} updated for ${m.user.username}#${m.user.discriminator}`)
+                    count++
+                    if(count>=g.members.size){
+                        console.log("Done")
+                        client.destroy()
+                    }
                 })
-                .catch(console.error)
             })
             .catch(console.error);
         } else {
