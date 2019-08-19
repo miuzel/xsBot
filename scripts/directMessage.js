@@ -17,32 +17,29 @@ client.on('ready',  () => {
     if (guild) {
             guild.fetchMembers().then(g => {
                 let count = 0
-                let countdown = ()=>{
+                let failed = 0
+                let countdown = size => () => {
                     count++
-                    if(count>=g.members.size){
-                        console.log(g.members.size + " users sent.")
+                    if(count>=size ){
+                        console.log(count + " users sent. " + failed +" users failed.")
                         console.log("Done")
                         client.destroy()
                     }
                 }
+                let handleErr = m => e => {
+                    failed++
+                    console.log("error add role to "+m.user.username)
+                    console.log(e.message)
+                }
                 if(userName === "@everyone"){
                     g.members.forEach(m => {
-                        m.send(text).then(countdown).catch((e) => {
-                            console.error("error send msg to "+ m.user.username)
-                            console.error(e)
-                        })
+                        m.send(text).catch(handleErr(m)).finally(countdown(g.members.size))
                         console.log(`Sent msg to ${m.user.username}#${m.user.discriminator}`)
                     })
                 } else {
                     m = g.members.find(m => m.user.username === userName)
                     if (m && client.user.id !== m.user.id){
-                        m.send(text).then(()=> {
-                            console.log(`Sent msg to ${m.user.username}#${m.user.discriminator}`)
-                            client.destroy()
-                        }).catch((e) => {
-                            console.error("error send msg to "+ m.user.username)
-                            console.error(e)
-                        })
+                        m.send(text).catch(handleErr(m)).finally(countdown(1))
                     } else {
                         console.log("no user "+userName +" found")
                         client.destroy()
