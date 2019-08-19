@@ -23,6 +23,7 @@
     "@babel/plugin-transform-async-to-generator": "^7.5.0",
     "@babel/runtime": "^7.5.5",
     "@keyv/sqlite": "^2.0.0",
+    "async": "^3.1.0",
     "bunyan": "^1.8.12",
     "chart.js": "^2.8.0",
     "chartjs-node": "^1.7.1",

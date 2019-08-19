@@ -3,12 +3,13 @@
 // Extract the required classes from the discord.js module
 const { Client } = require('discord.js');
 const { config } = require('../settings');
+const async = require("async");
 // Create an instance of a Discord client
 const client = new Client();
 const token = config.token;
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-const [guildName,userName,text,interval] = process.argv.slice(2);
+const [guildName,userName,text,concurrent] = process.argv.slice(2);
 process.setMaxListeners(0)
 
 client.on('ready',  () => {
@@ -18,7 +19,7 @@ client.on('ready',  () => {
             guild.fetchMembers().then(g => {
                 let count = 0
                 let failed = 0
-                let countdown = (m,size) => () => {
+                let countdown = (m,size) => {
                     count++
                     console.log("[DONE]"+m.user.username)
                     if(count>=size ){
@@ -27,18 +28,21 @@ client.on('ready',  () => {
                         client.destroy()
                     }
                 }
-                let handleErr = m => e => {
+                let handleErr = (m,e) => {
                     failed++
                     console.log("error DM to "+m.user.username)
                     console.log(e.message)
                 }
                 if(userName === "@everyone"){
-                    g.members.array().forEach((m, i) => {
-                        setTimeout(() => {
+                    async.mapLimit(g.members.array(),concurrent, async m => {
                             console.log(`Send msg to ${m.user.username}#${m.user.discriminator}`)
-                            m.send(text).catch(handleErr(m)).finally(countdown(m,g.members.size))
-                        }, interval * i)
-                    })
+                            try {
+                                await m.send(text)
+                            } catch (e){
+                                handleErr(m,e)
+                            }
+                            countdown(m,g.members.size)
+                    },err => err ? console.log(err) : null)
                 } else {
                     m = g.members.find(m => m.user.username === userName)
                     if (m && client.user.id !== m.user.id){
