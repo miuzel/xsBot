@@ -95,7 +95,8 @@ var generateNewPlot = async (points,target) => {
                 xAxes: [{
                     type: 'time',
                     time: {
-                        unit: 'minute'
+                        unit: 'hour',
+                        stepSize: 1
                     },
                     distribution: 'linear'
                 }]
