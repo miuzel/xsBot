@@ -20,8 +20,9 @@ client.on('ready',  () => {
             guild.fetchMembers().then(g => {
                 let count = 0
                 let failed = 0
-                let countdown = size => () => {
+                let countdown = (m,size) => () => {
                     count++
+                    console.log("[DONE]"+m.user.username)
                     if(count>=size){
                         console.log(count + " users updated. " + failed +" users failed.")
                         console.log("Done")
@@ -37,11 +38,11 @@ client.on('ready',  () => {
                     setTimeout(() => {
                         console.log(`Update role ${roleName} for ${m.user.username}#${m.user.discriminator}`)
                         if (addDelete === 'delete') {
-                            m.removeRole(role).catch(console.error).finally(countdown(g.members.size))
+                            m.removeRole(role).catch(console.error).finally(countdown(m,g.members.size))
                         } else {
-                            m.addRole(role).catch(console.error).finally(countdown(g.members.size))
+                            m.addRole(role).catch(console.error).finally(countdown(m,g.members.size))
                         }
-                    }, 50 * i)
+                    }, 100 * i)
                 })
             })
             .catch(console.error);
