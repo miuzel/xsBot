@@ -3,15 +3,16 @@
 // Extract the required classes from the discord.js module
 const { Client } = require('discord.js');
 const { config } = require('../settings');
+const async = require("async");
 // Create an instance of a Discord client
 const client = new Client();
 const token = config.token;
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-const [guildName,roleName,addDelete,interval] = process.argv.slice(2);
+const [guildName,roleName,addDelete,concurrent] = process.argv.slice(2);
 process.setMaxListeners(0)
 
-client.on('ready',  () => {
+client.on('ready',() => {
     console.log(`I am ready! Updating role ${roleName} of members in ${guildName}`);
     let guild = client.guilds.find(guild => guild.name === guildName)
     if (guild) {
@@ -20,7 +21,7 @@ client.on('ready',  () => {
             guild.fetchMembers().then(g => {
                 let count = 0
                 let failed = 0
-                let countdown = (m,size) => () => {
+                let countdown = (m,size) => {
                     count++
                     console.log("[DONE]"+m.user.username)
                     if(count>=size){
@@ -29,21 +30,30 @@ client.on('ready',  () => {
                         client.destroy()
                     }
                 }
-                let handleErr = m => e => {
+                let handleErr = (m,e) => {
                     failed++
                     console.log("error add role to "+m.user.username)
                     console.log(e.message)
                 }
-                g.members.array().forEach((m, i) => {
-                    setTimeout(() => {
-                        console.log(`Update role ${roleName} for ${m.user.username}#${m.user.discriminator}`)
-                        if (addDelete === 'delete') {
-                            m.removeRole(role).catch(console.error).finally(countdown(m,g.members.size))
-                        } else {
-                            m.addRole(role).catch(console.error).finally(countdown(m,g.members.size))
+
+                async.mapLimit(g.members.array(),concurrent, async m => {
+                    if (addDelete === 'delete') {
+                        console.log(`Del role ${roleName} for ${m.user.username}#${m.user.discriminator}`)
+                        try {
+                            await m.removeRole(role)
+                        } catch (e){
+                            handleErr(m,e)
                         }
-                    }, interval * i)
-                })
+                    } else {
+                        console.log(`Add role ${roleName} for ${m.user.username}#${m.user.discriminator}`)
+                        try {
+                            await m.addRole(role)
+                        } catch (e){
+                            handleErr(m,e)
+                        }
+                    }
+                    countdown(m,g.members.size)
+                },err => err ? console.log(err) : null)
             })
             .catch(console.error);
         } else {
