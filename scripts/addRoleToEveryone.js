@@ -24,6 +24,7 @@ client.on('ready',  () => {
                     console.log(`role ${roleName} updated for ${m.user.username}#${m.user.discriminator}`)
                     count++
                     if(count>=g.members.size){
+                        console.log(g.members.size + " users Updated.")
                         console.log("Done")
                         client.destroy()
                     }
