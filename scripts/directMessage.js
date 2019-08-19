@@ -18,8 +18,9 @@ client.on('ready',  () => {
             guild.fetchMembers().then(g => {
                 let count = 0
                 let failed = 0
-                let countdown = size => () => {
+                let countdown = (m,size) => () => {
                     count++
+                    console.log("[DONE]"+m.user.username)
                     if(count>=size ){
                         console.log(count + " users sent. " + failed +" users failed.")
                         console.log("Done")
@@ -35,13 +36,13 @@ client.on('ready',  () => {
                     g.members.array().forEach((m, i) => {
                         setTimeout(() => {
                             console.log(`Send msg to ${m.user.username}#${m.user.discriminator}`)
-                            m.send(text).catch(handleErr(m)).finally(countdown(g.members.size))
+                            m.send(text).catch(handleErr(m)).finally(countdown(m,g.members.size))
                         }, 50 * i)
                     })
                 } else {
                     m = g.members.find(m => m.user.username === userName)
                     if (m && client.user.id !== m.user.id){
-                        m.send(text).catch(handleErr(m)).finally(countdown(1))
+                        m.send(text).catch(handleErr(m)).finally(countdown(m,1))
                     } else {
                         console.log("no user "+userName +" found")
                         client.destroy()
