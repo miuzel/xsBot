@@ -19,15 +19,21 @@ client.on('ready',  () => {
         if (role){
             guild.fetchMembers().then(g => {
                 let count = 0
-                g.members.forEach(m => {
-                    addDelete === 'delete'? m.removeRole(role).catch(console.error) : m.addRole(role).catch(console.error)
-                    console.log(`role ${roleName} updated for ${m.user.username}#${m.user.discriminator}`)
+                let countdown = ()=>{
                     count++
                     if(count>=g.members.size){
                         console.log(g.members.size + " users Updated.")
                         console.log("Done")
                         client.destroy()
                     }
+                }
+                g.members.forEach(m => {
+                    if(addDelete === 'delete'){
+                        m.removeRole(role).then(countdown).catch(console.error)
+                    } else {
+                        m.addRole(role).then(countdown).catch(console.error)
+                    }
+                    console.log(`role ${roleName} updated for ${m.user.username}#${m.user.discriminator}`)
                 })
             })
             .catch(console.error);
