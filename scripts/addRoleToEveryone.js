@@ -8,7 +8,7 @@ const client = new Client();
 const token = config.token;
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-const [guildName,roleName,addDelete] = process.argv.slice(2);
+const [guildName,roleName,addDelete,interval] = process.argv.slice(2);
 process.setMaxListeners(0)
 
 client.on('ready',  () => {
@@ -42,7 +42,7 @@ client.on('ready',  () => {
                         } else {
                             m.addRole(role).catch(console.error).finally(countdown(m,g.members.size))
                         }
-                    }, 100 * i)
+                    }, interval * i)
                 })
             })
             .catch(console.error);
