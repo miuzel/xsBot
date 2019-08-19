@@ -33,13 +33,15 @@ client.on('ready',  () => {
                     console.log("error add role to "+m.user.username)
                     console.log(e.message)
                 }
-                g.members.forEach(m => {
-                    if(addDelete === 'delete'){
-                        m.removeRole(role).catch(console.error).finally(countdown(g.members.size))
-                    } else {
-                        m.addRole(role).catch(console.error).finally(countdown(g.members.size))
-                    }
-                    console.log(`role ${roleName} updated for ${m.user.username}#${m.user.discriminator}`)
+                g.members.array().forEach((m, i) => {
+                    setTimeout(() => {
+                        console.log(`Update role ${roleName} for ${m.user.username}#${m.user.discriminator}`)
+                        if (addDelete === 'delete') {
+                            m.removeRole(role).catch(console.error).finally(countdown(g.members.size))
+                        } else {
+                            m.addRole(role).catch(console.error).finally(countdown(g.members.size))
+                        }
+                    }, 50 * i)
                 })
             })
             .catch(console.error);

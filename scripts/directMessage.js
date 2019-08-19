@@ -28,13 +28,15 @@ client.on('ready',  () => {
                 }
                 let handleErr = m => e => {
                     failed++
-                    console.log("error add role to "+m.user.username)
+                    console.log("error DM to "+m.user.username)
                     console.log(e.message)
                 }
                 if(userName === "@everyone"){
-                    g.members.forEach(m => {
-                        m.send(text).catch(handleErr(m)).finally(countdown(g.members.size))
-                        console.log(`Sent msg to ${m.user.username}#${m.user.discriminator}`)
+                    g.members.array().forEach((m, i) => {
+                        setTimeout(() => {
+                            console.log(`Send msg to ${m.user.username}#${m.user.discriminator}`)
+                            m.send(text).catch(handleErr(m)).finally(countdown(g.members.size))
+                        }, 50 * i)
                     })
                 } else {
                     m = g.members.find(m => m.user.username === userName)
