@@ -8,7 +8,7 @@ const client = new Client();
 const token = config.token;
 // Log our bot in using the token from https://discordapp.com/developers/applications/me
 client.login(token);
-const [guildName,userName,text] = process.argv.slice(2);
+const [guildName,userName,text,interval] = process.argv.slice(2);
 process.setMaxListeners(0)
 
 client.on('ready',  () => {
@@ -37,7 +37,7 @@ client.on('ready',  () => {
                         setTimeout(() => {
                             console.log(`Send msg to ${m.user.username}#${m.user.discriminator}`)
                             m.send(text).catch(handleErr(m)).finally(countdown(m,g.members.size))
-                        }, 50 * i)
+                        }, interval * i)
                     })
                 } else {
                     m = g.members.find(m => m.user.username === userName)
