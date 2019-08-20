@@ -11,7 +11,7 @@ var config;
 var sessionOK = true;
 var c;
 var backendChannel;
-var processLiveInfo = async ($,e) => {
+var processLiveInfo = async ($,i,e) => {
     try {
         var item = $(e).parent().parent().parent().parent().parent();
         var title = $(item).find(".yt-lockup-title a.spf-link").text();
@@ -41,7 +41,7 @@ var processLiveInfo = async ($,e) => {
         if (!notified && discordClient && config.discordChannels){
             log.info(`First occurance. Report to discord.`)
             // sending msgs to all subscribed channels
-            let msg = `@everyone ${channel} 开始直播啦 不要忘记点赞`
+            let msg = `${i === 0 ? "@everyone" : "大家好"} ${channel} 开始直播啦 不要忘记点赞`
             let msgEmbed
             try {
                 msgEmbed = new Discord.RichEmbed()
@@ -96,8 +96,8 @@ var newCrawler = (config) => {
                         // $(".badge-style-type-live-now").each( (_,e) => {
                         //     processLiveInfo($,e);
                         // })
-                        $(".yt-badge-live").each( (_,e) => {
-                            processLiveInfo($,e);
+                        $(".yt-badge-live").each( (i,e) => {
+                            processLiveInfo($,i,e);
                         })
                     } else {
                         log.error(`Session cookie unavaliable title:$("title").text() expected Subscriptions` );
