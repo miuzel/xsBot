@@ -41,7 +41,8 @@ var processLiveInfo = async ($,i,e) => {
         if (!notified && discordClient && config.discordChannels){
             log.info(`First occurance. Report to discord.`)
             // sending msgs to all subscribed channels
-            let msg = `${i === 0 ? "@everyone" : "大家好"} ${channel} 开始直播啦 不要忘记点赞`
+            let greeting = i === 0 && config.notifyChannels.indexOf(channel) >= 0 ? "@everyone" : "大家好"
+            let msg = `${greeting} ${channel} 开始直播啦 不要忘记点赞`
             let msgEmbed
             try {
                 msgEmbed = new Discord.RichEmbed()
@@ -56,7 +57,7 @@ var processLiveInfo = async ($,i,e) => {
                 .setFooter(channel+" @ YOUTUBE","https://lh3.googleusercontent.com/nXQvCaVfnPLJ3TZ6QO96fySPPjuEDDTcO-HA8gf9mwFWSsqCC0g0ZQuLpAqTNAxlt3evBLmP-A=w128-h128-e365")
     
             }catch {
-                msg = `@everyone ${channel} 开始直播啦 不要忘记点赞，欢迎大家跟我聊天哦。`+"\n"+url;
+                msg = msg +"\n"+url;
             }
 
             //let

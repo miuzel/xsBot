@@ -55,7 +55,7 @@ var generateNewPlot = async (points,target) => {
           backgroundColor: "rgba(143, 195, 50 ,0.2)",
           borderColor: "rgba(143, 195, 50 ,1)",
           borderWidth: 2,
-          pointRadius: 1,
+          pointRadius: 0,
           hoverBackgroundColor: "rgba(143, 195, 50 ,0.4)",
           hoverBorderColor: "rgba(143, 195, 50 ,1)",
           data: downsampled.map(p=>p.y),
@@ -175,7 +175,7 @@ var processPlotData = async (x) => {
                 channel.send(msg,{
                     embed: msgEmbed
                 });
-                log.info(`Msg ${msg.description} sent to ${discordChannel}`)
+                log.info(`Msg ${msg} sent to ${discordChannel}`)
             } 
         }
         await keyv.set(plottingKey,data)
