@@ -53,7 +53,7 @@ var processLiveInfo = async (x) => {
                     channel.send(msg,{
                         embed: msgEmbed
                     });
-                    log.info(`Msg ${msg.description} sent to ${discordChannel}`)
+                    log.info(`Msg ${msg} sent to ${discordChannel}`)
                 }           
             }).then(() => {
                 keyv.set(videoKey,true)

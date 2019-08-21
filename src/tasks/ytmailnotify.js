@@ -8,6 +8,7 @@ var discordClient;
 var discordChannels;
 var keyv;
 var config;
+var lastNotified = 0;
 var processMail = async mail => {
     if (mail.from.length == 0 || mail.from[0].address !== 'noreply@youtube.com') {
         log.info(`non-youtube mail received. ${mail.subject} ${mail.date}`)
@@ -36,7 +37,9 @@ var processMail = async mail => {
                 }
             }
             let msgEmbed
-            let msg = `@everyone ${channel} ${(isLive? " 开始直播啦，":" 上传了新的视频，")}不要忘记点赞哦`
+            let now = new Date()
+            let greeting = now - lastNotified > 5000 && config.notifyChannels.indexOf(channel) >= 0  ? "@everyone" : "大家好"
+            let msg = `${greeting} ${channel} ${(isLive? " 开始直播啦，":" 上传了新的视频，")}不要忘记点赞哦`
             let title = mail.html.match(/video-title-font-class[^>]+>([^<]*)</) 
             title = title ? title[1]: ""
             try {
@@ -53,8 +56,9 @@ var processMail = async mail => {
     
             }catch(err) {
                 log.error(err)
-                msg = `@everyone ${mail.subject} 不要忘记点赞哦。 ${url[1]}${videoId}`;
+                msg = msg + "\n"+ `${url[1]}${videoId}`;
             }
+            lastNotified = now
 
             for (var discordChannel of discordChannels){
                 log.info('This video\'s ID is %s.', videoId);
