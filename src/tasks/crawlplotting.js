@@ -96,7 +96,7 @@ var generateNewPlot = async (points,target) => {
                     type: 'time',
                     time: {
                         unit: 'hour',
-                        stepSize: 1
+                        stepSize: 6
                     },
                     distribution: 'linear'
                 }]
