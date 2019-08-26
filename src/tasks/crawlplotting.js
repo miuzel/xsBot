@@ -46,8 +46,8 @@ var downSampling = (array, shards) => {
 }
 
 var generateNewPlot = async (points,target) => {
-    var chartNode = new ChartjsNode(1200, 600);
-    var downsampled = downSampling(points,800)
+    var chartNode = new ChartjsNode(1800, 900);
+    var downsampled = downSampling(points,1600)
     var data = {
         labels: downsampled.map(p=>p.x),
         datasets: [{
@@ -96,7 +96,10 @@ var generateNewPlot = async (points,target) => {
                     type: 'time',
                     time: {
                         unit: 'hour',
-                        stepSize: 6
+                        stepSize: 6,
+                        displayFormats: {
+                            hour: 'M.DD h A'
+                        }
                     },
                     distribution: 'linear'
                 }]
