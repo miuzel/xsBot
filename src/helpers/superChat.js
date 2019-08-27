@@ -12,9 +12,6 @@ var processLiveChat = async (error, res, done) =>{
         var $ = res.$;
         try {
             if ($("title").text().match(/Subscriptions/)){
-                // $(".badge-style-type-live-now").each( (_,e) => {
-                //     processLiveInfo($,e);
-                // })
                 $(".yt-badge-live").each( (i,e) => {
                     processLiveInfo($,i,e);
                 })
