@@ -1,5 +1,6 @@
 const bunyan = require('bunyan');
 var Crawler = require("crawler");
+var jsdom = require('jsdom');
 const moment = require('moment');
 var log = bunyan.createLogger({name: "superChat"});
 
@@ -9,20 +10,15 @@ var processLiveChat = async (error, res, done) =>{
         console.log("爬虫出错啦："+error);
         backendChannel.send("@everyone 爬虫出错啦："+error);
     } else {
-        var $ = res.$;
         try {
-            if ($("title").text().match(/Subscriptions/)){
-                $(".yt-badge-live").each( (i,e) => {
-                    processLiveInfo($,i,e);
-                })
-            } else {
-                log.error(`Session cookie unavaliable title:$("title").text() expected Subscriptions` );
-                if(discordClient){
-                    backendChannel.send("@everyone 大事不好啦，youtube的爬虫出问题了，爬到页面"+$("title").text());
-                    // todo: using conversation to update session
-                }
-                //sessionOK = false; // restore until restart
-            }
+            const {JSDOM} = jsdom
+            const { window } = new JSDOM(res.body, { runScripts: "dangerously" });
+            window.onload = () => {
+                console.log("ready to roll!");
+                console.log(window.ytInitialData)
+                console.log(window.ytInitialData.contents.liveChatRenderer.actions[0])
+                console.log(window.ytInitialData.contents.liveChatRenderer.continuations)
+            };
         } catch (err) {
             log.error(err);
         }
@@ -36,6 +32,8 @@ var fetchLiveChat = (videoId,cookie) => {
     let crawler =  new Crawler({
         maxConnections: 10,
         rateLimit: 1000,
+        jQuery: jsdom,
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36",
         callback: processLiveChat
     })
     crawler.on('schedule',function(options){
@@ -47,4 +45,4 @@ var fetchLiveChat = (videoId,cookie) => {
     crawler.queue(url)
 } 
 
-fetchLiveChat('UUiJnXjC_-o')
+fetchLiveChat('a3q4pUyr9Cw',"SID=nAdyYfDvZ-p-vaWsy7jIF1xScdsFR_k5jTqINZux76y5CTv-gT2sGuNeezlkYJpnhi8lyQ.; HSID=AzxX7-H2g_Skm3dhR; SSID=AHURIvimv3mqtS_b0")
