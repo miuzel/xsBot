@@ -16,7 +16,7 @@ var processLiveChat = async (error, res, done) =>{
             window.onload = () => {
                 console.log("ready to roll!");
                 console.log(window.ytInitialData)
-                console.log(window.ytInitialData.contents.liveChatRenderer.actions[0])
+                console.log(window.ytInitialData.contents.liveChatRenderer.actions[0].)
                 console.log(window.ytInitialData.contents.liveChatRenderer.continuations)
             };
         } catch (err) {
