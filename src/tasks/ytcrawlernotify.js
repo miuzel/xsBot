@@ -1,5 +1,6 @@
 var Crawler = require("crawler");
 import bunyan from 'bunyan';
+import SuperChat from '../helpers/superChat'
 const moduleName = 'ytcrawlernotify';
 const Discord = require('discord.js');
 const urllib = require("url");
@@ -11,6 +12,7 @@ var config;
 var sessionOK = true;
 var c;
 var backendChannel;
+var workingSuperChatFetcher = {};
 var processLiveInfo = async ($,i,e) => {
     try {
         var item = $(e).parent().parent().parent().parent().parent();
@@ -70,7 +72,12 @@ var processLiveInfo = async ($,i,e) => {
                     embed: msgEmbed
                 });
             }
+            
             await keyv.set(videoKey,true)
+        }
+        if(config.SuperChatChannels.indexOf(channel) >= 0 && workingSuperChatFetcher[videoId] === undefined){
+            workingSuperChatFetcher[videoId] = new SuperChat(videoId,discordClient, config.SuperChatDiscordChannels,backendChannel,config.cookie)
+            workingSuperChatFetcher[videoId].fetchLiveChat()
         }
     }catch(err){
         log.error(err)
