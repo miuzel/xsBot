@@ -140,7 +140,7 @@ var processPlotData = async (x) => {
             }]
         }
         log.info(`${config.title} now: ${x[config.field1]}`)
-        if (true || data.length % config.gap === 0 && discordClient && config.discordChannels){
+        if (data.length % config.gap === 0 && discordClient && config.discordChannels){
             log.info(`Report to discord.`)
             let image = await generateNewPlot([...data],x[config.field3])
             if (data.length > config.gap) {
