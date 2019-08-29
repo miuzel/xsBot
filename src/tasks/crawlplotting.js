@@ -68,7 +68,7 @@ var generateNewPlot = async (points,target) => {
           pointRadius: 0,
           hoverBackgroundColor: "rgba(255,99,132,0.4)",
           hoverBorderColor: "rgba(255,99,132,1)",
-          data: downsampled.map(p => target-p.y),
+          data: downsampled.map(p => target),
         }
          ]
       };
@@ -86,7 +86,10 @@ var generateNewPlot = async (points,target) => {
             },
             scales: {
                 yAxes: [{
-                  stacked: true,
+                  stacked: false,
+                  ticks: {
+                    beginAtZero: true
+                  },
                   gridLines: {
                     display: true,
                     color: "rgba(255,99,132,0.2)"
@@ -137,7 +140,7 @@ var processPlotData = async (x) => {
             }]
         }
         log.info(`${config.title} now: ${x[config.field1]}`)
-        if (data.length % config.gap === 0 && discordClient && config.discordChannels){
+        if (true || data.length % config.gap === 0 && discordClient && config.discordChannels){
             log.info(`Report to discord.`)
             let image = await generateNewPlot([...data],x[config.field3])
             if (data.length > config.gap) {

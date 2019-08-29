@@ -16,8 +16,11 @@ var processLiveChat = async (error, res, done) =>{
             window.onload = () => {
                 console.log("ready to roll!");
                 console.log(window.ytInitialData)
-                console.log(window.ytInitialData.contents.liveChatRenderer.actions[0].)
-                console.log(window.ytInitialData.contents.liveChatRenderer.continuations)
+                console.log(window.ytInitialData.contents.liveChatRenderer.actions
+                    .filter(x => x.addChatItemAction !== undefined)
+                    .map(x => x.addChatItemAction ))
+                console.log(window.ytInitialData.contents.liveChatRenderer.continuations[0])
+
             };
         } catch (err) {
             log.error(err);
@@ -44,5 +47,4 @@ var fetchLiveChat = (videoId,cookie) => {
     let url = 'https://www.youtube.com/live_chat?v=' + videoId
     crawler.queue(url)
 } 
-
-fetchLiveChat('a3q4pUyr9Cw',"SID=nAdyYfDvZ-p-vaWsy7jIF1xScdsFR_k5jTqINZux76y5CTv-gT2sGuNeezlkYJpnhi8lyQ.; HSID=AzxX7-H2g_Skm3dhR; SSID=AHURIvimv3mqtS_b0")
+fetchLiveChat('jdT18-l7C24',"SID=nAdyYfDvZ-p-vaWsy7jIF1xScdsFR_k5jTqINZux76y5CTv-gT2sGuNeezlkYJpnhi8lyQ.; HSID=AzxX7-H2g_Skm3dhR; SSID=AHURIvimv3mqtS_b0")
