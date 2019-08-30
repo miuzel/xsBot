@@ -25,7 +25,7 @@ export default class SuperChat {
             .setAuthor( `${data.authorName.simpleText} 🌠 ${data.purchaseAmountText.simpleText}`,data.authorPhoto.thumbnails[0].url)
             .setThumbnail(data.authorPhoto.thumbnails[1].url)
             .setTitle("高亮留言 - 无内容")
-            .addField("直播链接",`[:film_frames: ${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId}&t=${second}s)`)
+            .addField("直播链接",`🎞️[${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId}&t=${second}s)`)
             .setTimestamp()
             .setFooter("高亮留言")
             if(data.message && data.message.runs){
