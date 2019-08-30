@@ -29,13 +29,7 @@ keyv.on('error', err => log.error('Keyv connection error:', err));
  */
 client.on('ready',  () => {
   log.info('I am ready!');
-  var tasks = [
-    'ytcrawlernotify',
-    'ytmailnotify',
-    'lscrawlernotify',
-    'crawlplotting',
-    'crowdjoindetect'
-  ]
+  var tasks = config.tasksEnabled
   // var tasks = ['ytmailnotify']
   for (var t of tasks ){
     var task = require(`./tasks/${t}`)
