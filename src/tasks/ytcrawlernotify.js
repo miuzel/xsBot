@@ -42,6 +42,7 @@ var processLiveInfo = async ($,i,e) => {
         log.info(`${channel} LIVE now：${title} ${meta} videoId: ${videoId} url: ${shortUrl}`)
         if (!notified && discordClient && config.discordChannels){
             log.info(`First occurance. Report to discord.`)
+            notified = new Date().getTime()
             // sending msgs to all subscribed channels
             let greeting = i === 0 && config.notifyChannels.indexOf(channel) >= 0 ? "@everyone" : "大家好"
             let msg = `${greeting} ${channel} 开始直播啦 不要忘记点赞`
@@ -72,11 +73,10 @@ var processLiveInfo = async ($,i,e) => {
                     embed: msgEmbed
                 });
             }
-            
-            await keyv.set(videoKey,true)
+            await keyv.set(videoKey,notified)
         }
         if(config.SuperChatChannels.indexOf(channel) >= 0 && workingSuperChatFetcher[videoId] === undefined){
-            workingSuperChatFetcher[videoId] = new SuperChat(videoId,discordClient, config.SuperChatDiscordChannels,backendChannel,config.cookie)
+            workingSuperChatFetcher[videoId] = new SuperChat(videoId, title,notified, discordClient, config.SuperChatDiscordChannels,backendChannel,config.cookie)
             workingSuperChatFetcher[videoId].fetchLiveChat()
         }
     }catch(err){

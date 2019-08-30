@@ -26,6 +26,7 @@ var processMail = async mail => {
         if (moment().subtract(600,'seconds') > moment(mail.date)){
             log.warn("mail date too old. ignore.")
         } else if (!notified && discordClient && discordChannels){
+            let timenow = new Date().getTime()
             let image = `http://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
             let channel
             let isLive = mail.subject.match(/^🔴/)
@@ -70,7 +71,7 @@ var processMail = async mail => {
                     embed: msgEmbed
                 });
             }
-            await keyv.set(videoKey,true)
+            await keyv.set(videoKey,timenow)
         }
     } else {
         console.log(mail.text)

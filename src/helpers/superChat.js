@@ -6,8 +6,10 @@ const log = bunyan.createLogger({name: "superChat"});
 const { JSDOM } = jsdom
 
 export default class SuperChat {
-    constructor(videoId, discord, channels,backendChannel, cookie) {
+    constructor(videoId, videoTitle,videoStart, discord, channels,backendChannel, cookie) {
         this.videoId = videoId
+        this.videoStart = videoStart
+        this.videoTitle = videoTitle
         this.discordClient = discord
         this.discordChannels = channels
         this.backendChannel = backendChannel
@@ -16,17 +18,18 @@ export default class SuperChat {
                 console.log(data)
                 return 
             }
-            let msg = `感谢 ${data.authorName.simpleText} 的高亮留言，mua`
+            let second = Math.floor((new Date().getTime() - this.videoStart)/1000)
+            let msg = `感谢 ${data.authorName.simpleText} 的高亮留言，Mua :two_hearts: `
             let msgEmbed = new Discord.RichEmbed()
             .setColor('#f57c00')
-            .setAuthor(data.authorName.simpleText)
-            .setURL(`https://www.youtube.com/watch?v=${this.videoId}`)
+            .setAuthor( `${data.authorName.simpleText} 🌠 ${data.purchaseAmountText.simpleText}`,data.authorPhoto.thumbnails[0].url)
+            .setThumbnail(data.authorPhoto.thumbnails[1].url)
+            .setTitle("高亮留言 - 无内容")
+            .addField("直播链接",`[:film_frames: ${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId}&t=${second}s)`)
             .setTimestamp()
-            if(data.purchaseAmountText && data.purchaseAmountText.simpleText) {
-                msgEmbed.setDescription(`金额：${data.purchaseAmountText.simpleText}`)
-            }
+            .setFooter("高亮留言")
             if(data.message && data.message.runs){
-                msgEmbed.setTitle(data.message.runs.map(x=>x.text).join(""))
+                msgEmbed.setTitle(data.message.runs.filter(x=>x.text !== undefined).map(x=>x.text).join(""))
             }
                
             for (var discordChannel of this.discordChannels){
