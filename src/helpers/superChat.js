@@ -2,10 +2,22 @@ import bunyan from 'bunyan';
 import Crawler from "crawler";
 import Discord from 'discord.js';
 import jsdom from 'jsdom';
+import { exec } from 'child_process';
+import fs from 'fs';
 const log = bunyan.createLogger({name: "superChat"});
 const { JSDOM } = jsdom
 
+const getRandomColor = () => {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
 export default class SuperChat {
+      
     constructor(videoId, videoTitle,videoStart, discord, channels,backendChannel, cookie) {
         this.videoId = videoId
         this.videoStart = videoStart
@@ -13,6 +25,7 @@ export default class SuperChat {
         this.discordClient = discord
         this.discordChannels = channels
         this.backendChannel = backendChannel
+        this.isLive = false
         this.sendSuperChat = data => {
             if(!this.discordClient){
                 console.log(data)
@@ -21,13 +34,12 @@ export default class SuperChat {
             let second = Math.floor((new Date().getTime() - this.videoStart)/1000)
             let msg = `感谢 ${data.authorName.simpleText} 的高亮留言，Mua :two_hearts: `
             let msgEmbed = new Discord.RichEmbed()
-            .setColor('#f57c00')
-            .setAuthor( `${data.authorName.simpleText} 🌠 ${data.purchaseAmountText.simpleText}`,data.authorPhoto.thumbnails[0].url)
+            .setColor(getRandomColor())
+            .setAuthor( data.authorName.simpleText, data.authorPhoto.thumbnails[0].url)
             .setThumbnail(data.authorPhoto.thumbnails[1].url)
             .setTitle("高亮留言 - 无内容")
-            .addField("直播链接",`🎞️[${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId}&t=${second}s)`)
+            .setURL(`https://www.youtube.com/watch?v=${this.videoId}&t=${second}s`)
             .setTimestamp()
-            .setFooter("高亮留言")
             if(data.message && data.message.runs){
                 msgEmbed.setTitle(data.message.runs.filter(x=>x.text !== undefined).map(x=>x.text).join(""))
             }
@@ -43,18 +55,32 @@ export default class SuperChat {
                 log.info(`Msg ${msg} sent to ${discordChannel}`)
             }
         }
+        this.logActions = actions => {
+            let renderer
+            let data = actions.filter(x => x.addChatItemAction !== undefined)
+            .map(x => {
+                if (x.addChatItemAction.item.liveChatPaidMessageRenderer){
+                    renderer = x.addChatItemAction.item.liveChatPaidMessageRenderer
+                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message.runs.map(x=>x.text).join("")}\n`
+                }
+                if (x.addChatItemAction.item.liveChatTextMessageRenderer){
+                    renderer = x.addChatItemAction.item.liveChatTextMessageRenderer
+                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message.runs.map(x=>x.text).join("")}\n`
+                }
+                return ''
+            })
+            .join("")
+            fs.appendFile('./superChat/'+this.videoId+".txt", data , function (err) {
+                if (err) throw err;
+                log.info('Saved!');
+              });
+        }
         this.processActions = actions => {
-            log.info("process actions")
             if(!actions){
                 return
             }
             try {
-                // actions.filter(x => x.addChatItemAction !== undefined && x.addChatItemAction.item.liveChatTextMessageRenderer)
-                //         .map(x => {
-                //             let data = x.addChatItemAction.item.liveChatTextMessageRenderer
-                //             this.sendSuperChat(data)
-                //             console.log(`${data.authorName.simpleText}: ${data.message.runs.map(x=>x.text).join("")}`)
-                //         } )
+                this.logActions(actions)
                 actions.filter(x => x.addChatItemAction !== undefined && x.addChatItemAction.item.liveChatPaidMessageRenderer)
                         .map(x => {
                             let data = x.addChatItemAction.item.liveChatPaidMessageRenderer
@@ -66,7 +92,7 @@ export default class SuperChat {
             }
         }
         this.processLiveChatCont = async (error, res, done) => {
-            log.info("Parsing get_live_chat json ");
+            log.info("Parsing get_live_chat json "+this.videoTitle);
             if (error) {
                 console.log("爬虫出错啦："+error);
                 this.backendChannel.send("@everyone 爬虫出错啦："+error);
@@ -92,8 +118,8 @@ export default class SuperChat {
             }
         })
         this.processContinuations = continuations => {
-            log.info("process continuations")
-            if(!continuations){
+            //log.info("process continuations")
+            if(!continuations || !this.isLive){
                 log.info("no continuations.")
                 return
             }
@@ -110,25 +136,53 @@ export default class SuperChat {
             } else {
                 log.info(continuations)
                 log.info("no continuations.")
+                this.fetchLiveChat()
             }
         }
         this.processLiveChat = async (error, res, done) =>{
-            log.info("Start parsing bootstrap page");
+            log.info("Start parsing bootstrap page "+this.videoTitle);
             if (error) {
                 log.error("爬虫出错啦："+error);
                 this.backendChannel.send("@everyone 爬虫出错啦："+error);
             } else {
-                console.log(res.request.path)
+                log.info(res.request.path)
                 try {
                     const { window } = new JSDOM(res.body, { runScripts: "dangerously" });
                     window.onload = () => {
                         if(!window.ytInitialData){
                             log.error("no inital data, so stop")
+                            this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`);
+                            this.isLive = false
+                            exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}.txt`, function (error, stdout, stderr) {
+                                log.info('stdout: ' + stdout);
+                                log.error('stderr: ' + stderr);
+                                if (error !== null) {
+                                  log.error('exec error: ' + error);
+                                  return 
+                                }
+                                this.backendChannel.send('直播留言记录已生成，请下载。').then(log.info).catch(log.error)
+                                this.backendChannel.send({
+                                    files: [{
+                                      attachment: `./superChat/${this.videoId}.zip`,
+                                      name: `${this.videoId}.zip`
+                                    }]
+                                }).then(log.info).catch(log.error)
+                              });
                             return 
                         }
-                        let liveChat = window.ytInitialData.contents.liveChatRenderer
-                        this.processActions(liveChat.actions)
-                        this.processContinuations(liveChat.continuations)
+                        if(!this.isLive){
+                            log.info("Start process continuations "+this.videoTitle);
+                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的高亮留言了。`);
+                            this.isLive = true
+                            let liveChat = window.ytInitialData.contents.liveChatRenderer
+                            this.processActions(liveChat.actions)
+                            this.processContinuations(liveChat.continuations)
+                        }
+                        setTimeout(()=> {
+                            log.info("Check video Status "+this.videoTitle);
+                            let url = 'https://www.youtube.com/live_chat?v=' + this.videoId
+                            this.crawler.queue(url)
+                        },100000)
                     };
                 } catch (err) {
                     log.error(err);
