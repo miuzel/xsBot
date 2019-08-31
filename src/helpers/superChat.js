@@ -61,11 +61,11 @@ export default class SuperChat {
             .map(x => {
                 if (x.addChatItemAction.item.liveChatPaidMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatPaidMessageRenderer
-                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message.runs.map(x=>x.text).join("")}\n`
+                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }\n`
                 }
                 if (x.addChatItemAction.item.liveChatTextMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatTextMessageRenderer
-                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message.runs.map(x=>x.text).join("")}\n`
+                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}\n`
                 }
                 return ''
             })
