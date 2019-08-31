@@ -26,6 +26,7 @@ export default class SuperChat {
         this.discordChannels = channels
         this.backendChannel = backendChannel
         this.isLive = false
+        this.isInitialized = false
         this.sendSuperChat = data => {
             if(!this.discordClient){
                 console.log(data)
@@ -178,10 +179,10 @@ export default class SuperChat {
                             this.finish()
                             return 
                         }
-                        if(!this.isLive){
+                        if(!this.isInitialized){
                             log.info("Start process continuations "+this.videoTitle);
                             this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`);
-                            this.isLive = true
+                            this.isInitialized = true
                             let liveChat = window.ytInitialData.contents.liveChatRenderer
                             this.processActions(liveChat.actions)
                             this.processContinuations(liveChat.continuations)
