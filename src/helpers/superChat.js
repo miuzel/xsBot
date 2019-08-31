@@ -139,6 +139,30 @@ export default class SuperChat {
                 this.fetchLiveChat()
             }
         }
+        this.finish = () => {
+            if(!this.isLive){
+                log.warn("already stoped." + this.videoTitle)
+                return
+            }
+            this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`);
+            this.isLive = false
+            exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}.txt`,  (error, stdout, stderr) => {
+                log.info('stdout: ' + stdout);
+                log.error('stderr: ' + stderr);
+                if (error !== null) {
+                  log.error('exec error: ' + error);
+                  return 
+                }
+                this.backendChannel.send('直播留言记录已生成，请下载。').then(log.info).catch(log.error)
+                this.backendChannel.send({
+                    files: [{
+                      attachment: `./superChat/${this.videoId}.zip`,
+                      name: `${this.videoId}.zip`
+                    }]
+                }).then(log.info).catch(log.error)
+              });
+            return
+        }
         this.processLiveChat = async (error, res, done) =>{
             log.info("Start parsing bootstrap page "+this.videoTitle);
             if (error) {
@@ -151,28 +175,12 @@ export default class SuperChat {
                     window.onload = () => {
                         if(!window.ytInitialData){
                             log.error("no inital data, so stop")
-                            this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`);
-                            this.isLive = false
-                            exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}.txt`, function (error, stdout, stderr) {
-                                log.info('stdout: ' + stdout);
-                                log.error('stderr: ' + stderr);
-                                if (error !== null) {
-                                  log.error('exec error: ' + error);
-                                  return 
-                                }
-                                this.backendChannel.send('直播留言记录已生成，请下载。').then(log.info).catch(log.error)
-                                this.backendChannel.send({
-                                    files: [{
-                                      attachment: `./superChat/${this.videoId}.zip`,
-                                      name: `${this.videoId}.zip`
-                                    }]
-                                }).then(log.info).catch(log.error)
-                              });
+                            this.finish()
                             return 
                         }
                         if(!this.isLive){
                             log.info("Start process continuations "+this.videoTitle);
-                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的高亮留言了。`);
+                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`);
                             this.isLive = true
                             let liveChat = window.ytInitialData.contents.liveChatRenderer
                             this.processActions(liveChat.actions)
