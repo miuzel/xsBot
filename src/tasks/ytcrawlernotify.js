@@ -13,7 +13,11 @@ var sessionOK = true;
 var c;
 var backendChannel;
 var workingSuperChatFetcher = {};
+var workingSuperChatFetcherFinish = {};
+var liveVideos = [];
+var liveVideosNow = [];
 var processLiveInfo = async ($,i,e) => {
+    var videoId;
     try {
         var item = $(e).parent().parent().parent().parent().parent();
         var title = $(item).find(".yt-lockup-title a.spf-link").text();
@@ -27,7 +31,6 @@ var processLiveInfo = async ($,i,e) => {
         // var image = $(item).find(".yt-thumb-simple img").attr("src")
         //var result = urllib.parse(image);
         //image= result.protocol +"//"+ result.hostname + result.pathname
-        var videoId;
         var m = url.match(/v=(.*)$/);
         if(m){
             videoId = m[1];
@@ -35,6 +38,7 @@ var processLiveInfo = async ($,i,e) => {
         if(!videoId){
             log.error("cannot find videoId. sth. went wrong:"+item)
         }
+        liveVideosNow.push(videoId)
         var image = `http://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
         let shortUrl = `https://youtu.be/${videoId}`
         let videoKey = "notified#"+videoId;
@@ -75,7 +79,7 @@ var processLiveInfo = async ($,i,e) => {
             }
             await keyv.set(videoKey,notified)
         }
-        if(config.SuperChatChannels.indexOf(channel) >= 0 && workingSuperChatFetcher[videoId] === undefined){
+        if(config.SuperChatChannels.indexOf(channel) >= 0 && workingSuperChatFetcher[videoId] === undefined && !workingSuperChatFetcherFinish[videoId] ){
             workingSuperChatFetcher[videoId] = new SuperChat(videoId, title,notified, discordClient, config.SuperChatDiscordChannels,backendChannel,config.cookie)
             workingSuperChatFetcher[videoId].fetchLiveChat()
         }
@@ -104,9 +108,18 @@ var newCrawler = (config) => {
                         // $(".badge-style-type-live-now").each( (_,e) => {
                         //     processLiveInfo($,e);
                         // })
-                        $(".yt-badge-live").each( (i,e) => {
-                            processLiveInfo($,i,e);
+                        liveVideosNow = []
+                        $(".yt-badge-live").map( (i,e) => processLiveInfo($,i,e))
+                        liveVideos.filter(x=> liveVideosNow.indexOf(x) < 0).map(x=>{
+                            if(workingSuperChatFetcher[x]){
+                                log.info("finished superchat "+x)
+                                workingSuperChatFetcher[x].finish()
+                                delete workingSuperChatFetcher[x]
+                                workingSuperChatFetcherFinish[x] =true
+                            }
+                            return x
                         })
+                        liveVideos = [...liveVideosNow]
                     } else {
                         log.error(`Session cookie unavaliable title:$("title").text() expected Subscriptions` );
                         if(discordClient){
