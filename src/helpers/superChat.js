@@ -183,6 +183,7 @@ export default class SuperChat {
                             log.info("Start process continuations "+this.videoTitle);
                             this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`);
                             this.isInitialized = true
+                            this.isLive = true
                             let liveChat = window.ytInitialData.contents.liveChatRenderer
                             this.processActions(liveChat.actions)
                             this.processContinuations(liveChat.continuations)
