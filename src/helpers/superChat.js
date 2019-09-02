@@ -172,7 +172,7 @@ export default class SuperChat {
             } else {
                 log.info(res.request.path)
                 try {
-                    const { window } = new JSDOM(res.body, { runScripts: "dangerously" });
+                    let { window } = new JSDOM(res.body, { runScripts: "dangerously" });
                     window.onload = () => {
                         if(!window.ytInitialData){
                             log.error("no inital data, so stop")
@@ -193,6 +193,7 @@ export default class SuperChat {
                             let url = 'https://www.youtube.com/live_chat?v=' + this.videoId
                             this.crawler.queue(url)
                         },100000)
+                        window.close()
                     };
                 } catch (err) {
                     log.error(err);
