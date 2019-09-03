@@ -31,8 +31,8 @@ var processMail = async mail => {
             let channel
             let isLive = mail.subject.match(/^🔴/)
             for(let channelName in config.channelThumnail){
-                const p1 = new RegExp( `^${channelName}`)
-                const p2 = new RegExp( `“${channelName}”`)
+                let p1 = new RegExp( `^${channelName}`)
+                let p2 = new RegExp( `“${channelName}”`)
                 if(mail.subject.match(p1) || mail.subject.match(p2)){
                     channel = channelName
                 }
@@ -63,7 +63,7 @@ var processMail = async mail => {
 
             for (var discordChannel of discordChannels){
                 log.info('This video\'s ID is %s.', videoId);
-                const [guildName,channelName]  = discordChannel.split('#');
+                let [guildName,channelName]  = discordChannel.split('#');
                 let channel = discordClient
                 .guilds.find(guild => guild.name === guildName)
                 .channels.find(ch => ch.name === channelName)
@@ -81,7 +81,7 @@ var n
 var task = {
     name: moduleName,
     start: (settings,discord,kv) => {
-        const imap = {
+        let imap = {
             user: settings.email,
             password: settings.password,
             host: settings.imapserver,

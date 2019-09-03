@@ -46,7 +46,7 @@ export default class SuperChat {
             }
                
             for (var discordChannel of this.discordChannels){
-                const [guildName,channelName]  = discordChannel.split('#');
+                let [guildName,channelName]  = discordChannel.split('#');
                 let channel = this.discordClient
                 .guilds.find(guild => guild.name === guildName)
                 .channels.find(ch => ch.name === channelName)

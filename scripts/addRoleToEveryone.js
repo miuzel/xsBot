@@ -39,7 +39,7 @@ client.on('ready',() => {
                 }
 
                 async.mapLimit(g.members.array(),concurrent, async m => {
-                    const taskKey = `script#${m.user.id}#role#${taskid}`
+                    let taskKey = `script#${m.user.id}#role#${taskid}`
                     let done = await keyv.get(taskKey) 
                     let fails = 0
                     while (!done && fails < 5){
