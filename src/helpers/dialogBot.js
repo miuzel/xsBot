@@ -14,11 +14,11 @@ async function runDialogFlow(userId = 'default',message = '',projectId = 'xsbot-
         sessions.set(userId,sessionId);
     }
     // Create a new session
-    const sessionClient = await new dialogflow.SessionsClient();
-    const sessionPath = sessionClient.sessionPath(projectId, sessionId);
+    let sessionClient = await new dialogflow.SessionsClient();
+    let sessionPath = sessionClient.sessionPath(projectId, sessionId);
 
     // The text query request.
-    const request = {
+    let request = {
         session: sessionPath,
         queryInput: {
         text: {
@@ -32,8 +32,8 @@ async function runDialogFlow(userId = 'default',message = '',projectId = 'xsbot-
 
     // Send request and log result
     try {
-        const responses = await sessionClient.detectIntent(request);
-        const result = responses[0].queryResult;
+        let responses = await sessionClient.detectIntent(request);
+        let result = responses[0].queryResult;
         log.debug(`  Query: ${result.queryText}`);
         log.debug(`  Response: ${result.fulfillmentText}`);
         if (result.intent) {

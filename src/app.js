@@ -48,7 +48,7 @@ var msgToMe = m => {
   if( m.author.id === client.user.id){
     return false 
   }
-  const trimed = m.content.trim().toLowerCase();
+  let trimed = m.content.trim().toLowerCase();
   
   if( trimed.startsWith(prefix)){
     return m.content.trim().slice(prefix.length).trim()
@@ -59,12 +59,12 @@ var msgToMe = m => {
   if( m.channel.type === "dm"){
     return m.content.trim()
   }
-  const matches = trimed.match(/^(<@!?\d+>)/);
+  let matches = trimed.match(/^(<@!?\d+>)/);
   if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
     return trimed.slice(matches[1].length).trim()
   }
   for ( let pattern of config.mustReplyPatterns){
-    const p = new RegExp(pattern)
+    let p = new RegExp(pattern)
     if(trimed.match(p)){
       return m.content.trim()
     }
@@ -74,7 +74,7 @@ var msgToMe = m => {
 
 client.on('message', async message => {
   // If the message is "how to embed"
-  const msg = msgToMe(message);
+  let msg = msgToMe(message);
   if (msg) {
     message.channel.startTyping();
     message.content = msg;

@@ -69,7 +69,7 @@ var processLiveInfo = async ($,i,e) => {
 
             //let
             for (var discordChannel of config.discordChannels){
-                const [guildName,channelName]  = discordChannel.split('#');
+                let [guildName,channelName]  = discordChannel.split('#');
                 let channel = discordClient
                 .guilds.find(guild => guild.name === guildName)
                 .channels.find(ch => ch.name === channelName)
@@ -144,7 +144,7 @@ var init = () => {
             cookie: config.cookie
         };
     });
-    const [guildName,channelName]  = config.backendChannel.split('#');
+    let [guildName,channelName]  = config.backendChannel.split('#');
     backendChannel = discordClient
     .guilds.find(guild => guild.name === guildName)
     .channels.find(ch => ch.name === channelName)

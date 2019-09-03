@@ -46,7 +46,7 @@ var processLiveInfo = async (x) => {
 
 
                 for (var discordChannel of config.discordChannels){
-                    const [guildName,channelName]  = discordChannel.split('#');
+                    let [guildName,channelName]  = discordChannel.split('#');
                     let channel = discordClient
                     .guilds.find(guild => guild.name === guildName)
                     .channels.find(ch => ch.name === channelName)
@@ -106,7 +106,7 @@ var newCrawler = (config) => {
 }
 var init = () => {
     c = newCrawler(config);
-    const [guildName,channelName]  = config.backendChannel.split('#');
+    let [guildName,channelName]  = config.backendChannel.split('#');
     backendChannel = discordClient
     .guilds.find(guild => guild.name === guildName)
     .channels.find(ch => ch.name === channelName)

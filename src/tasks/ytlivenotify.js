@@ -15,7 +15,7 @@ var keyv;
 var getLiveStreams= async channel => {
     log.info('Get livestreams start.')
     try {
-        const response = await  service.search.list(
+        let response = await  service.search.list(
             {
                 part: "snippet",
                 type: "video",
@@ -35,7 +35,7 @@ var getLiveStreams= async channel => {
                 if (!notified && discordClient && channel.discordChannels){
                     let msg = `@everyone ${channel.owner} 开始直播啦 不要忘记点赞哦。 https://www.youtube.com/watch?v=${liveStream.id.videoId}`;
                     for (var discordChannel of channel.discordChannels){
-                        const [guildName,channelName]  = discordChannel.split('#');
+                        let [guildName,channelName]  = discordChannel.split('#');
                         let channel = discordClient
                         .guilds.find(guild => guild.name === guildName)
                         .channels.find(ch => ch.name === channelName)
