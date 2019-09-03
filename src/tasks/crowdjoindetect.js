@@ -11,7 +11,7 @@ var lastWarned1 = {}
 var lastWarned2 = {}
 
 var handleMemberAdd = async (member) => {
-    const guildName = member.guild.name
+    let guildName = member.guild.name
     if(!config.guilds[guildName]){
         return
     }
@@ -51,7 +51,7 @@ var handleMemberAdd = async (member) => {
     }
 }
 var handleMemberUpdate = (_ , newMember) => {
-    const guildName = newMember.guild.name
+    let guildName = newMember.guild.name
     if(!config.guilds[guildName]){
         return
     }
@@ -64,7 +64,7 @@ var handleMemberUpdate = (_ , newMember) => {
 }
 
 var init = async () => {
-    const [guildName,channelName]  = config.backendChannel.split('#');
+    let [guildName,channelName]  = config.backendChannel.split('#');
     backendChannel = discordClient
     .guilds.find(guild => guild.name === guildName)
     .channels.find(ch => ch.name === channelName)
