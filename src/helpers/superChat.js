@@ -171,32 +171,35 @@ export default class SuperChat {
                 this.backendChannel.send("@everyone 爬虫出错啦："+error);
             } else {
                 log.info(res.request.path)
-                try {
-                    let { window } = new JSDOM(res.body, { runScripts: "dangerously" });
-                    window.onload = () => {
-                        if(!window.ytInitialData){
-                            log.error("no inital data, so stop")
-                            this.finish()
-                            return 
-                        }
-                        if(!this.isInitialized){
-                            log.info("Start process continuations "+this.videoTitle);
+                if(!this.isInitialized){
+                    this.isInitialized = true
+                    try {
+                        let { window } = new JSDOM(res.body, { runScripts: "dangerously" });
+                        window.onload = () => {
+                            if(!window.ytInitialData){
+                                log.error("no inital data, so stop")
+                                window.close()
+                                this.finish()
+                                return 
+                            }
                             this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`);
-                            this.isInitialized = true
                             this.isLive = true
                             let liveChat = window.ytInitialData.contents.liveChatRenderer
                             this.processActions(liveChat.actions)
                             this.processContinuations(liveChat.continuations)
+                            setTimeout(() => {
+                                log.info("Close window "+res.request.path)
+                                window.close() 
+                            }, 0)
+                        };
+                    } catch (err) {
+                        if(window){
+                            window.close()
                         }
-                        setTimeout(()=> {
-                            log.info("Check video Status "+this.videoTitle);
-                            let url = 'https://www.youtube.com/live_chat?v=' + this.videoId
-                            this.crawler.queue(url)
-                        },100000)
-                        window.close()
-                    };
-                } catch (err) {
-                    log.error(err);
+                        log.error(err);
+                    }
+                } else {
+                    log.warn("already initialized.")
                 }
             }
             await done();
