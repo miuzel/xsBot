@@ -52,7 +52,7 @@ export default class SuperChat {
                 .channels.find(ch => ch.name === channelName)
                 channel.send(msg,{
                     embed: msgEmbed
-                });
+                }).then(log.info).catch(log.error);
                 log.info(`Msg ${msg} sent to ${discordChannel}`)
             }
         }
@@ -96,7 +96,7 @@ export default class SuperChat {
             log.info("Parsing get_live_chat json "+this.videoTitle);
             if (error) {
                 console.log("爬虫出错啦："+error);
-                this.backendChannel.send("@everyone 爬虫出错啦："+error);
+                this.backendChannel.send("@everyone 爬虫出错啦："+error).then(log.info).catch(log.error);
             } else {
                 res = JSON.parse(res.body)
                 if (res.response && res.response.continuationContents){
@@ -145,7 +145,7 @@ export default class SuperChat {
                 log.warn("already stoped." + this.videoTitle)
                 return
             }
-            this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`);
+            this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`).then(log.info).catch(log.error);
             this.isLive = false
             exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}.txt`,  (error, stdout, stderr) => {
                 log.info('stdout: ' + stdout);
@@ -168,7 +168,7 @@ export default class SuperChat {
             log.info("Start parsing bootstrap page "+this.videoTitle);
             if (error) {
                 log.error("爬虫出错啦："+error);
-                this.backendChannel.send("@everyone 爬虫出错啦："+error);
+                this.backendChannel.send("@everyone 爬虫出错啦："+error).then(log.info).catch(log.error);
             } else {
                 log.info(res.request.path)
                 if(!this.isInitialized){
@@ -182,7 +182,7 @@ export default class SuperChat {
                                 this.finish()
                                 return 
                             }
-                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`);
+                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`).then(log.info).catch(log.error);
                             this.isLive = true
                             let liveChat = window.ytInitialData.contents.liveChatRenderer
                             this.processActions(liveChat.actions)
