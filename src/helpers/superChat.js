@@ -4,6 +4,7 @@ import Discord from 'discord.js';
 import jsdom from 'jsdom';
 import { exec } from 'child_process';
 import fs from 'fs';
+import stringify from 'csv-stringify';
 const log = bunyan.createLogger({name: "superChat"});
 const { JSDOM } = jsdom
 
@@ -27,7 +28,7 @@ export default class SuperChat {
         this.backendChannel = backendChannel
         this.isLive = false
         this.isInitialized = false
-        this.sendSuperChat = data => {
+        this.sendSuperChat = async data => {
             if(!this.discordClient){
                 console.log(data)
                 return 
@@ -44,37 +45,59 @@ export default class SuperChat {
             if(data.message && data.message.runs){
                 msgEmbed.setTitle(data.message.runs.filter(x=>x.text !== undefined).map(x=>x.text).join(""))
             }
-               
+            
             for (var discordChannel of this.discordChannels){
                 let [guildName,channelName]  = discordChannel.split('#');
-                let channel = this.discordClient
-                .guilds.find(guild => guild.name === guildName)
-                .channels.find(ch => ch.name === channelName)
-                channel.send(msg,{
-                    embed: msgEmbed
-                }).then(log.info).catch(log.error);
+                try {
+                    let channel = this.discordClient
+                    .guilds.find(guild => guild.name === guildName)
+                    .channels.find(ch => ch.name === channelName)
+                    await channel.send(msg,{
+                        embed: msgEmbed
+                    })
+                } catch (err) {
+                    log.error(err)
+                }
                 log.info(`Msg ${msg} sent to ${discordChannel}`)
             }
         }
         this.logActions = actions => {
+            const csv = []
+            const stringifier = stringify({delimiter: ','})
+            stringifier.on('readable',  () => {
+                let row;
+                while(row = stringifier.read()){
+                    csv.push(row)
+                }
+            })
+            stringifier.on('error', (err) => {
+                console.error(err.message)
+            })
+            stringifier.on('finish', () => {
+                fs.appendFile(`./superChat/${this.videoId}/data.csv` , csv.join('') ,  (err) => {
+                    if (err) throw err;
+                    log.info('Data Saved! vid:'+this.videoId);
+                });
+            })
             let renderer
-            let data = actions.filter(x => x.addChatItemAction !== undefined)
+            actions.filter(x => x.addChatItemAction !== undefined)
             .map(x => {
+                let res = []
                 if (x.addChatItemAction.item.liveChatPaidMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatPaidMessageRenderer
-                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }\n`
+                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(" "), renderer.authorName.simpleText, `[${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }`]
+                    stringifier.write(res)
+                    //`[${}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }\n`
                 }
                 if (x.addChatItemAction.item.liveChatTextMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatTextMessageRenderer
-                    return `[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}\n`
+                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(" "), renderer.authorName.simpleText, `${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}`]
+                    stringifier.write(res)
+                    //`[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}\n`
                 }
-                return ''
+                return res
             })
-            .join("")
-            fs.appendFile('./superChat/'+this.videoId+".txt", data , function (err) {
-                if (err) throw err;
-                log.info('Saved!');
-              });
+            stringifier.end()
         }
         this.processActions = actions => {
             if(!actions){
@@ -98,10 +121,10 @@ export default class SuperChat {
                 console.log("爬虫出错啦："+error);
                 this.backendChannel.send("@everyone 爬虫出错啦："+error).then(log.info).catch(log.error);
             } else {
-                res = JSON.parse(res.body)
-                if (res.response && res.response.continuationContents){
-                    this.processActions(res.response.continuationContents.liveChatContinuation.actions)
-                    this.processContinuations(res.response.continuationContents.liveChatContinuation.continuations)
+                let resjson = JSON.parse(res.body)
+                if (resjson.response && resjson.response.continuationContents){
+                    this.processActions(resjson.response.continuationContents.liveChatContinuation.actions)
+                    this.processContinuations(resjson.response.continuationContents.liveChatContinuation.continuations)
                 }
             }
             await done();
@@ -147,7 +170,7 @@ export default class SuperChat {
             }
             this.backendChannel.send(`视频 ${this.videoTitle} 里的高亮留言收集结束了。`).then(log.info).catch(log.error);
             this.isLive = false
-            exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}.txt`,  (error, stdout, stderr) => {
+            exec(`zip ./superChat/${this.videoId}.zip ./superChat/${this.videoId}/*.*`,  (error, stdout, stderr) => {
                 log.info('stdout: ' + stdout);
                 log.error('stderr: ' + stderr);
                 if (error !== null) {
@@ -166,6 +189,34 @@ export default class SuperChat {
         }
         this.processLiveChat = async (error, res, done) =>{
             log.info("Start parsing bootstrap page "+this.videoTitle);
+            let index = [
+                "---",
+                `title: "${this.videoTitle}"`,
+                "date: " + new Date().toISOString(),
+                "draft: false",
+                "---",
+                "",
+                "# THE WALL",
+                "",
+                "## 2019-08-31 ",
+                "",
+                `[${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId})`
+            ]
+            exec(`mkdir -p ./superChat/${this.videoId} ; wget https://i.ytimg.com/vi/${this.videoId}/hqdefault.jpg -O ./superChat/${this.videoId}/thumb.jpg `,  (error, stdout, stderr) => {
+                log.info('stdout: ' + stdout);
+                log.error('stderr: ' + stderr);
+                if (error !== null) {
+                  log.error('exec error: ' + error);
+                  this.finish()
+                  return 
+                }
+                fs.writeFile(`./superChat/${this.videoId}/index.md` , index.join("\n") ,  (err) => {
+                    if (err) throw err;
+                    log.info('Index Saved! vid:'+this.videoId);
+                });
+            })
+
+
             if (error) {
                 log.error("爬虫出错啦："+error);
                 this.backendChannel.send("@everyone 爬虫出错啦："+error).then(log.info).catch(log.error);
@@ -175,18 +226,22 @@ export default class SuperChat {
                     this.isInitialized = true
                     try {
                         let { window } = new JSDOM(res.body, { runScripts: "dangerously" });
-                        window.onload = () => {
+                        window.onload = async () =>  {
                             if(!window.ytInitialData){
                                 log.error("no inital data, so stop")
                                 window.close()
                                 this.finish()
                                 return 
                             }
-                            this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`).then(log.info).catch(log.error);
-                            this.isLive = true
-                            let liveChat = window.ytInitialData.contents.liveChatRenderer
-                            this.processActions(liveChat.actions)
-                            this.processContinuations(liveChat.continuations)
+                            try {
+                                await this.backendChannel.send(`我开始收集视频 ${this.videoTitle} 里的留言了，等下打包发出来。`)
+                                this.isLive = true
+                                let liveChat = window.ytInitialData.contents.liveChatRenderer
+                                this.processActions(liveChat.actions)
+                                this.processContinuations(liveChat.continuations)
+                            } catch (err) {
+                                log.error(err);
+                            }
                             setTimeout(() => {
                                 log.info("Close window "+res.request.path)
                                 window.close() 

@@ -28,6 +28,7 @@
     "chart.js": "^2.8.0",
     "chartjs-node": "^1.7.1",
     "crawler": "^1.2.1",
+    "csv-stringify": "^5.3.3",
     "dialogflow": "^0.10.2",
     "discord.js": "^11.5.1",
     "google-auth-library": "^4.2.5",
@@ -46,6 +47,7 @@
     "@babel/plugin-transform-runtime": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/register": "^7.5.5",
+    "eslint": "^6.3.0",
     "nodemon": "^1.19.1"
   }
 }
