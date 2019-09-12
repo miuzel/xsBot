@@ -189,16 +189,17 @@ export default class SuperChat {
         }
         this.processLiveChat = async (error, res, done) =>{
             log.info("Start parsing bootstrap page "+this.videoTitle);
+            let date = new Date().toISOString()
             let index = [
                 "---",
                 `title: "${this.videoTitle}"`,
-                "date: " + new Date().toISOString(),
+                "date: " + date,
                 "draft: false",
                 "---",
                 "",
                 "# THE WALL",
                 "",
-                "## 2019-08-31 ",
+                "## " + date.slice(0,10),
                 "",
                 `[${this.videoTitle}](https://www.youtube.com/watch?v=${this.videoId})`
             ]
