@@ -82,21 +82,25 @@ var newCrawler = (config) => {
                 console.log("livestream爬虫出错啦："+error);
                 backendChannel.send("@everyone livestream爬虫出错啦："+error);
             }else{
-                let resJson = JSON.parse(res.body);
-                if (resJson.data){
-                    resJson.data.map(
-                        x => {
-                            if (x.broadcast_id !== -1){
-                                processLiveInfo(x)
-                            } 
-                            return x
+                try {
+                    let resJson = JSON.parse(res.body);
+                    if (resJson.data){
+                        resJson.data.map(
+                            x => {
+                                if (x.broadcast_id !== -1){
+                                    processLiveInfo(x)
+                                } 
+                                return x
+                            }
+                        )
+                    } else {
+                        log.error(`livestream api data failed data:\n${res.body}` );
+                        if(discordClient){
+                            backendChannel.send("@everyone 大事不好啦，livestream的爬虫出问题了")
                         }
-                    )
-                } else {
-                    log.error(`livestream api data failed data:\n${res.body}` );
-                    if(discordClient){
-                        backendChannel.send("@everyone 大事不好啦，livestream的爬虫出问题了")
                     }
+                } catch (err) {
+                    log.error(err)
                 }
             }
             await done();
