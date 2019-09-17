@@ -16,7 +16,7 @@ var processMail = async mail => {
     }
     log.info(`received mail ${mail.subject} ${mail.date}`)
     //var url = mail.html.match(/(http:\/\/www\.youtube\.com\/watch\?v=)([^\&\\\s]+)/)
-    var m = mail.text.match(/\/watch%3Fv%3D([^%]+)%26/)
+    var m = mail.text.match(/\/watch?v=([^%]+)&/)
     if (m) {
         let videoId = m[1];
         let url = 'https://www.youtube.com/watch?v=' + videoId
