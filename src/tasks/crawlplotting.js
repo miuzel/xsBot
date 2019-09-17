@@ -109,7 +109,9 @@ var generateNewPlot = async (points,target) => {
             }
         }
     })
-    return chartNode.getImageBuffer('image/png')
+    let img = chartNode.getImageBuffer('image/png')
+    chartNode.destroy()
+    return img
 }
 var isAtEveryone = (last1,last2) => {
     return Math.floor(last1/10000) > Math.floor(last2/10000) ? "@everyone，" : "大家好，"
