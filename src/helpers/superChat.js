@@ -85,13 +85,13 @@ export default class SuperChat {
                 let res = []
                 if (x.addChatItemAction.item.liveChatPaidMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatPaidMessageRenderer
-                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(" "), renderer.authorName.simpleText, `[${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }`]
+                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(", "), renderer.authorName.simpleText, `[${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }`]
                     stringifier.write(res)
                     //`[${}] ${renderer.authorName.simpleText}: [${renderer.purchaseAmountText.simpleText}] ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : "" }\n`
                 }
                 if (x.addChatItemAction.item.liveChatTextMessageRenderer){
                     renderer = x.addChatItemAction.item.liveChatTextMessageRenderer
-                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(" "), renderer.authorName.simpleText, `${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}`]
+                    res = [ ...new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false}).split(", "), renderer.authorName.simpleText, `${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}`]
                     stringifier.write(res)
                     //`[${new Date(renderer.timestampUsec/1000).toLocaleString("zh-CN",{timeZone:'Asia/Shanghai',hourCycle:"h23",hour12:false})}] ${renderer.authorName.simpleText}: ${renderer.message && renderer.message.runs ? renderer.message.runs.map(x=>x.text).join("") : ""}\n`
                 }
