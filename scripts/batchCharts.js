@@ -37,33 +37,41 @@ var downSampling = (array, shards) => {
     return arrayRes
 }
 
-var generateNewPlot = async (points,target,seq) => {
+var generateNewPlot = async (points,lasttime,target,seq) => {
     var chartNode = new ChartjsNode(1920, 1080);
     var downsampled = downSampling(points,1600)
     var data = {
-        labels: downsampled.map(p=>p.x),
+        labels: downsampled.map(p => p.x),
         datasets: [{
-          label: config.title,
-          backgroundColor: "rgba(143, 195, 50 ,0.2)",
-          borderColor: "rgba(143, 195, 50 ,1)",
-          borderWidth: 2,
-          pointRadius: 0,
-          hoverBackgroundColor: "rgba(143, 195, 50 ,0.4)",
-          hoverBorderColor: "rgba(143, 195, 50 ,1)",
-          data: downsampled.map(p=>p.y),
+            label: config.title,
+            backgroundColor: "rgba(143, 195, 50 ,0.2)",
+            borderColor: "rgba(143, 195, 50 ,1)",
+            borderWidth: 2,
+            pointRadius: 0,
+            hoverBackgroundColor: "rgba(143, 195, 50 ,0.4)",
+            hoverBorderColor: "rgba(143, 195, 50 ,1)",
+            data: downsampled.map(p => p.y),
         },
         {
-          label: "目标",
-          backgroundColor: "rgba(255,99,132,0.2)",
-          borderColor: "rgba(255,99,132,1)",
-          borderWidth: 2,
-          pointRadius: 0,
-          hoverBackgroundColor: "rgba(255,99,132,0.4)",
-          hoverBorderColor: "rgba(255,99,132,1)",
-          data: downsampled.map(p => target),
+            label: "目标",
+            backgroundColor: "rgba(255,99,132,0.2)",
+            borderColor: "rgba(255,99,132,1)",
+            borderWidth: 2,
+            pointRadius: 0,
+            hoverBackgroundColor: "rgba(255,99,132,0.4)",
+            hoverBorderColor: "rgba(255,99,132,1)",
+            data: downsampled.length ? [
+                {
+                    x: downsampled[0].x,
+                    y: target
+                }, {
+                    x: lasttime,
+                    y: target
+                }
+            ] : []
         }
-         ]
-      };
+        ]
+    };
     await chartNode.drawChart({
         type: 'line',
         data: data,
@@ -71,7 +79,7 @@ var generateNewPlot = async (points,target,seq) => {
             layout: {
                 padding: {
                     left: 0,
-                    right: 50,
+                    right: 20,
                     top: 0,
                     bottom: 0
                 }
@@ -98,6 +106,7 @@ var generateNewPlot = async (points,target,seq) => {
                 xAxes: [{
                     type: 'time',
                     time: {
+                        max: lasttime,
                         unit: 'hour',
                         stepSize: 12,
                         displayFormats: {
@@ -115,8 +124,9 @@ var generateNewPlot = async (points,target,seq) => {
 }
 
 const config = {
-    title: "test",
-    plottingID: "test1",
+    title: "白宫请愿",
+    plottingID: "petition1",
+    target: 100000,
     folder: "/tmp/charts/",
     locale: "zh_CN",
     kv: "../db.sqlite"
@@ -126,9 +136,10 @@ const keyv = new Keyv(`sqlite://${config.kv}`);
 var main = async () => {
     let plottingKey = "plot#"+config.plottingID;
     let data = await keyv.get(plottingKey)
+    let lasttime = data[data.length - 1].x
     for (var i = 0;i*40<data.length;i = i+1){
         console.log(i)
-        let image = await generateNewPlot([...data.slice(0,i*40)],100000,i)
+        let image = await generateNewPlot([...data.slice(0,i*40)],lasttime ,config.target,i)
     }
 
 }
