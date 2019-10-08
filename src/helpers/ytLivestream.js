@@ -3,6 +3,9 @@ const ytdl = require('ytdl-core');
 const { config } = require('../../settings');
 
 const client = new Discord.Client();
+const myUsername = config.myUsername;
+const prefix = config.prefix;
+
 client.on("ready",()=>{
     console.log("ready")
 })
@@ -26,12 +29,6 @@ var msgToMe = m => {
     let matches = trimed.match(/^(<@!?\d+>)/);
     if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
       return trimed.slice(matches[1].length).trim()
-    }
-    for ( let pattern of config.mustReplyPatterns){
-      let p = new RegExp(pattern)
-      if(trimed.match(p)){
-        return m.content.trim()
-      }
     }
     return false;
   } 
