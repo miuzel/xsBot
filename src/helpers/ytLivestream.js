@@ -5,10 +5,10 @@ const { config } = require('../../settings');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
 const prefix = config.prefix;
-const voiceChannel = false
-const dispatcher = false
-const connection = false
-const stream = false
+var voiceChannel = false
+var dispatcher = false
+var connection = false
+var stream = false
 client.on("ready",()=>{
     console.log("ready")
 })
