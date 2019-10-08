@@ -59,7 +59,12 @@ client.on('message', message => {
         message.reply('好的，我来试一下，请稍候。。。');
 		voiceChannel.join().then(async connection => {
             //const stream = ytdl('https://www.youtube.com/watch?v=Ha2rCC9IOCA', { filter: 'audioonly' });
-            const info = await ytdl.getInfo(url)
+            try {
+                const info = await ytdl.getInfo(url)
+            } catch(err){
+                message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+                console.log("play info error "+ url + "\n" + err)
+            }
             //{ quality: [128,127,120,96,95,94,93] }
             const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
             
