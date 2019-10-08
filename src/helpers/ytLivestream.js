@@ -69,6 +69,13 @@ client.on('message', message => {
       dispatch(url,message)
 		});
 	} else if ( msg.toLowerCase().startsWith('请停止转播')){
+        if (!( message.member.roles.find(role => role.name === "DJ") ||
+               message.member.roles.find(role => role.name === "程序员") ||
+               message.member.roles.find(role => role.name.startsWith("管理员"))
+        ))
+        {
+            return message.reply('控制转播内容请找DJ吧');
+        }
         if(connection){
             message.reply('好的。');
             connection.disconnect()
