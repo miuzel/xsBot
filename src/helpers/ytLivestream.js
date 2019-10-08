@@ -6,16 +6,47 @@ const client = new Discord.Client();
 client.on("ready",()=>{
     console.log("ready")
 })
+
+
+var msgToMe = m => {
+    if( m.author.id === client.user.id){
+      return false 
+    }
+    let trimed = m.content.trim().toLowerCase();
+    
+    if( trimed.startsWith(prefix)){
+      return m.content.trim().slice(prefix.length).trim()
+    }
+    if( trimed.startsWith(myUsername)){
+      return m.content.trim().slice(myUsername.length).trim()
+    }
+    if( m.channel.type === "dm"){
+      return m.content.trim()
+    }
+    let matches = trimed.match(/^(<@!?\d+>)/);
+    if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
+      return trimed.slice(matches[1].length).trim()
+    }
+    for ( let pattern of config.mustReplyPatterns){
+      let p = new RegExp(pattern)
+      if(trimed.match(p)){
+        return m.content.trim()
+      }
+    }
+    return false;
+  } 
+
+  
 client.on('message', message => {
     if (message.channel.type !== 'text') return;
-    if (!message.member.roles.has(message.guild.roles.find(role => role.name === "DJ")) ||
-    !message.member.roles.has(message.guild.roles.find(role => role.name === "程序员")) ||
-    !message.member.roles.has(message.guild.roles.find(role => role.name.startsWith("管理员")))){
-        return message.reply('转播直播内容请找DJ吧');
-    }
-    const msg = message.content.trim()
-	if (msg.toLowerCase().startsWith('细姐请转播')) {
-        let url = msg.substring('细姐请转播'.length -1 )
+    let msg = msgToMe(message);
+	if (msg.toLowerCase().startsWith('请你转播')) {
+        if (!message.member.roles.has(message.guild.roles.find(role => role.name === "DJ")) ||
+        !message.member.roles.has(message.guild.roles.find(role => role.name === "程序员")) ||
+        !message.member.roles.has(message.guild.roles.find(role => role.name.startsWith("管理员")))){
+            return message.reply('转播直播内容请找DJ吧');
+        }
+        let url = msg.substring('请你转播'.length -1 )
         if(!url){
 			return message.reply('没有链接吗？');
         }
@@ -35,6 +66,7 @@ client.on('message', message => {
             const stream = ytdl.downloadFromInfo(info, livequality ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
             stream.on("info", (info, format) => { console.log(format) })
             //connection.play(stream);
+            message.reply('开始转播，请稍候。。。');
             stream.on("end", () => {
                 message.reply(url + '直播结束了，如果出了啥问你，请你重新播一次。');
             })
