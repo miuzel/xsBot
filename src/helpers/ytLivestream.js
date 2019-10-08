@@ -10,6 +10,7 @@ var voiceChannel = false
 var dispatcher = false
 var connection = false
 var stream = false
+var playing = false
 client.on("ready",()=>{
     console.log("ready")
 })
@@ -78,6 +79,7 @@ client.on('message', message => {
         }
         if(connection){
             message.reply('好的。');
+            playing = false
             connection.disconnect()
             voiceChannel.leave()
             connection = false
@@ -108,16 +110,22 @@ dispatch = async (url,message) => {
         voiceChannel.leave()
     })
     s.on("error", (err) => {
-        message.reply(url + ' 的直播出错了\n YouTube说：' + err);
-        console.log("play error "+ url + "\n" + err)
+        if(playing){
+          message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+          console.log("play error "+ url + "\n" + err)
+        } else {
+          voiceChannel.leave()
+        }
     })
     dispatcher = connection.playStream( s );
     dispatcher.on('end', () => {
-      console.log("dispatcher stopped "+ url + "\n")
-      message.reply('直播中断了，重连中，请稍候。。。'); 
-      setTimeout(() => {
-        dispatch(url,message)
-      }, 100);
+      if(playing){
+        console.log("dispatcher stopped "+ url + "\n")
+        message.reply('直播中断了，重连中，请稍候。。。'); 
+        setTimeout(() => {
+          dispatch(url,message)
+        }, 100);
+      }
     });
     dispatcher.on('error', (err) =>{
       console.log("dispatcher error "+ url + "\n" + err)
