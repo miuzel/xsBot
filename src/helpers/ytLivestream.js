@@ -5,11 +5,10 @@ const { config } = require('../../settings');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
 const prefix = config.prefix;
-const voiceChannel
-const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
-const dispatcher
-const connection
-const stream
+const voiceChannel = false
+const dispatcher = false
+const connection = false
+const stream = false
 client.on("ready",()=>{
     console.log("ready")
 })
@@ -68,6 +67,7 @@ client.on('message', message => {
             try {
                 connection = c
                 const info = await ytdl.getInfo(url)
+                const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
                 stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
                 stream.on("info", (info, format) => { console.log(format) })
                 
