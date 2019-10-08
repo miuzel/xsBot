@@ -31,7 +31,7 @@ var msgToMe = m => {
     }
     let matches = trimed.match(/^(<@!?\d+>)/);
     if( matches && m.mentions.users.first() && m.mentions.users.first().username === myUsername){
-      return trimed.slice(matches[1].length).trim()
+      return m.content.trim().slice(matches[1].length).trim()
     }
     return false;
   } 
