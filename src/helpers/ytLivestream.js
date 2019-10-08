@@ -38,9 +38,10 @@ client.on('message', message => {
     if (message.channel.type !== 'text') return;
     let msg = msgToMe(message);
 	if (msg.toLowerCase().startsWith('请你转播')) {
-        if (!message.member.roles.has(message.guild.roles.find(role => role.name === "DJ")) ||
-        !message.member.roles.has(message.guild.roles.find(role => role.name === "程序员")) ||
-        !message.member.roles.has(message.guild.roles.find(role => role.name.startsWith("管理员")))){
+        if (!(message.member.roles.has(message.guild.roles.find(role => role.name === "DJ")) ||
+            message.member.roles.has(message.guild.roles.find(role => role.name === "程序员")) ||
+            message.member.roles.has(message.guild.roles.find(role => role.name.startsWith("管理员")))
+        )) {
             return message.reply('转播直播内容请找DJ吧');
         }
         let url = msg.substring('请你转播'.length -1 )
@@ -54,6 +55,7 @@ client.on('message', message => {
 			return message.reply('请你先加入一个语音室，让我知道你有权限。');
 		}
 
+        message.reply('好的，我来试一下。');
 		voiceChannel.join().then(async connection => {
             //const stream = ytdl('https://www.youtube.com/watch?v=Ha2rCC9IOCA', { filter: 'audioonly' });
             const info = await ytdl.getInfo(url)
