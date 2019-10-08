@@ -68,7 +68,7 @@ client.on('message', message => {
                 connection = c
                 const info = await ytdl.getInfo(url)
                 const livequality = info.formats.filter(x=> x.isHLS && x.audioBitrate !== null).map(x=>x.itag).sort((a,b) => a*1 > b*1)
-                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<21, liveBuffer: 25000, begin: Date.now() - 20000 } : {highWaterMark: 1<<21,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
+                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<21, liveBuffer: 25000, begin: Date.now() } : {highWaterMark: 1<<21,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
                 stream.on("info", (info, format) => { console.log(format) })
                 message.reply('开始转播，正在缓冲，请稍候。。。');
                 stream.on("end", () => {
