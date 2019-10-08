@@ -58,31 +58,30 @@ client.on('message', message => {
 
         message.reply('好的，我来试一下，请稍候。。。');
 		voiceChannel.join().then(async connection => {
-            //const stream = ytdl('https://www.youtube.com/watch?v=Ha2rCC9IOCA', { filter: 'audioonly' });
             try {
                 const info = await ytdl.getInfo(url)
+                //{ quality: [128,127,120,96,95,94,93] }
+                const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
+                
+                const stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
+                stream.on("info", (info, format) => { console.log(format) })
+                
+                message.reply('开始转播，正在缓冲，请稍候。。。');
+                stream.on("end", () => {
+                    message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
+                    console.log("play end "+ url )
+                })
+                stream.on("error", (err) => {
+                    message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+                    console.log("play error "+ url + "\n" + err)
+                })
+                const dispatcher = connection.playStream(stream);
+                dispatcher.on('end', () => voiceChannel.leave());
+                dispatcher.on('error', () => voiceChannel.leave());
             } catch(err){
-                message.reply(url + ' 的直播出错了\n YouTube说：' + err);
                 console.log("play info error "+ url + "\n" + err)
+                return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
             }
-            //{ quality: [128,127,120,96,95,94,93] }
-            const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
-            
-            const stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
-            stream.on("info", (info, format) => { console.log(format) })
-            
-            message.reply('开始转播，正在缓冲，请稍候。。。');
-            stream.on("end", () => {
-                message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
-                console.log("play end "+ url )
-            })
-            stream.on("error", (err) => {
-                message.reply(url + ' 的直播出错了\n YouTube说：' + err);
-                console.log("play error "+ url + "\n" + err)
-            })
-			const dispatcher = connection.playStream(stream);
-			dispatcher.on('end', () => voiceChannel.leave());
-			dispatcher.on('error', () => voiceChannel.leave());
 		});
 	}
 });
