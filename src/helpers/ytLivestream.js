@@ -37,11 +37,7 @@ var msgToMe = m => {
 client.on('message', message => {
     if (message.channel.type !== 'text') return;
     let msg = msgToMe(message);
-    console.log(msg)
 	if (msg && msg.toLowerCase().startsWith('请你转播')) {
-        console.log( message.member.roles.find(role => role.name === "DJ") ||
-        message.member.roles.find(role => role.name === "程序员") ||
-        message.member.roles.find(role => role.name.startsWith("管理员")))
         if (!( message.member.roles.find(role => role.name === "DJ") ||
                message.member.roles.find(role => role.name === "程序员") ||
                message.member.roles.find(role => role.name.startsWith("管理员"))
@@ -66,20 +62,22 @@ client.on('message', message => {
             const info = await ytdl.getInfo(url)
             //{ quality: [128,127,120,96,95,94,93] }
             const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
-            console.log(livequality)
+            
             const stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
             stream.on("info", (info, format) => { console.log(format) })
-            //connection.play(stream);
+            
             message.reply('开始转播，正在缓冲，请稍候。。。');
             stream.on("end", () => {
                 message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
+                console.log("play end "+ url )
             })
             stream.on("error", (err) => {
                 message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+                console.log("play error "+ url + "\n" + err)
             })
 			const dispatcher = connection.playStream(stream);
 			dispatcher.on('end', () => voiceChannel.leave());
-			dispatcher.on('error', (err) => voiceChannel.leave());
+			dispatcher.on('error', () => voiceChannel.leave());
 		});
 	}
 });
