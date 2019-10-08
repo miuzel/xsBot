@@ -67,10 +67,9 @@ client.on('message', message => {
             try {
                 connection = c
                 const info = await ytdl.getInfo(url)
-                const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
-                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
+                const livequality = info.formats.filter(x=> x.isHLS).map(x=>x.itag).sort((a,b) => a > b)
+                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<21, liveBuffer: 25000, begin: Date.now() - 20000 } : {highWaterMark: 1<<21,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
                 stream.on("info", (info, format) => { console.log(format) })
-                
                 message.reply('开始转播，正在缓冲，请稍候。。。');
                 stream.on("end", () => {
                     message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
@@ -82,7 +81,10 @@ client.on('message', message => {
                 })
                 dispatcher = connection.playStream(stream);
                 dispatcher.on('end', () => voiceChannel.leave());
-                dispatcher.on('error', () => voiceChannel.leave());
+                dispatcher.on('error', (err) =>{
+                  console.log("dispatcher error "+ url + "\n" + err)
+                  voiceChannel.leave()
+                });
             } catch(err){
                 console.log("play info error "+ url + "\n" + err)
                 return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
