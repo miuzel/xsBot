@@ -98,7 +98,7 @@ dispatch = async (url,message) => {
     stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<22, liveBuffer: 25000, begin: Date.now() - delay } : {highWaterMark: 1<<22,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
     stream.on("info", (info, format) => { console.log(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
-    
+    playing = true
     const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus')
     // const s = stream
     s.on('start', function(commandLine) {
