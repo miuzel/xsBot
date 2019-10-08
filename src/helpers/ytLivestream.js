@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const { config } = require('../../settings');
+const ffmpeg = require('fluent-ffmpeg');
 
 const client = new Discord.Client();
 const myUsername = config.myUsername;
@@ -63,34 +64,9 @@ client.on('message', message => {
 		}
 
         message.reply('好的，我来试一下，请稍候。。。');
-		voiceChannel.join().then(async c => {
-            try {
-                connection = c
-                const info = await ytdl.getInfo(url)
-                console.log(info.player_response.playabilityStatus.liveStreamability.pollDelayMs)
-                const delay = info.player_response.playabilityStatus ? info.player_response.playabilityStatus.liveStreamability.pollDelayMs : 5000
-                const livequality = info.formats.filter(x=> x.isHLS && x.audioBitrate !== null).map(x=>x.itag).sort((a,b) => a*1 > b*1)
-                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<21, liveBuffer: 25000, begin: Date.now() - delay } : {highWaterMark: 1<<21,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
-                stream.on("info", (info, format) => { console.log(format) })
-                message.reply('开始转播，正在缓冲，请稍候。。。');
-                stream.on("end", () => {
-                    message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
-                    console.log("play end "+ url )
-                })
-                stream.on("error", (err) => {
-                    message.reply(url + ' 的直播出错了\n YouTube说：' + err);
-                    console.log("play error "+ url + "\n" + err)
-                })
-                dispatcher = connection.playStream(stream);
-                dispatcher.on('end', () => voiceChannel.leave());
-                dispatcher.on('error', (err) =>{
-                  console.log("dispatcher error "+ url + "\n" + err)
-                  voiceChannel.leave()
-                });
-            } catch(err){
-                console.log("play info error "+ url + "\n" + err)
-                return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
-            }
+		voiceChannel.join().then( c => {
+      connection = c
+      dispatch(url,message)
 		});
 	} else if ( msg.toLowerCase().startsWith('请停止转播')){
         if(connection){
@@ -104,4 +80,45 @@ client.on('message', message => {
     }
 });
 
+dispatch = async (url,message) => {
+  try {
+    const info = await ytdl.getInfo(url)
+    console.log(info.player_response.playabilityStatus.liveStreamability.pollDelayMs)
+    const delay = info.player_response.playabilityStatus ? info.player_response.playabilityStatus.liveStreamability.pollDelayMs : 5000
+    const livequality = info.formats.filter(x=> x.isHLS && x.audioBitrate > 95).map(x=>x.itag).sort((a,b) => a*1 > b*1)
+    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<22, liveBuffer: 25000, begin: Date.now() - delay } : {highWaterMark: 1<<22,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
+    stream.on("info", (info, format) => { console.log(format) })
+    message.reply('开始转播，正在缓冲，请稍候。。。');
+    
+    const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus')
+    // const s = stream
+    s.on('start', function(commandLine) {
+      console.log('Spawned Ffmpeg with command: ' + commandLine);
+    });
+    s.on("end", () => {
+        message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
+        console.log("play end "+ url )
+        voiceChannel.leave()
+    })
+    s.on("error", (err) => {
+        message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+        console.log("play error "+ url + "\n" + err)
+    })
+    dispatcher = connection.playStream( s );
+    dispatcher.on('end', () => {
+      console.log("dispatcher stopped "+ url + "\n")
+      message.reply('直播中断了，重连中，请稍候。。。'); 
+      setTimeout(() => {
+        dispatch(url,message)
+      }, 100);
+    });
+    dispatcher.on('error', (err) =>{
+      console.log("dispatcher error "+ url + "\n" + err)
+      voiceChannel.leave()
+    });
+  } catch(err){
+      console.log("play info error "+ url + "\n" + err)
+      return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
+  }
+}
 client.login(config.token);
