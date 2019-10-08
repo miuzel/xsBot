@@ -93,7 +93,9 @@ client.on('message', message => {
             connection.disconnect()
             voiceChannel.leave()
             connection = false
+            return message.reply('好的。');
         }
+        return message.reply('什么，现在没有转播啊');
     }
 });
 
