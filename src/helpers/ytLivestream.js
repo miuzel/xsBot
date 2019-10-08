@@ -88,7 +88,7 @@ client.on('message', message => {
                 return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
             }
 		});
-	} else if ( msg.toLowerCase() === '请停止转播'){
+	} else if ( msg.toLowerCase().startsWith('请停止转播')){
         if(connection){
             connection.disconnect()
             voiceChannel.leave()
