@@ -5,7 +5,11 @@ const { config } = require('../../settings');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
 const prefix = config.prefix;
-
+const voiceChannel
+const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
+const dispatcher
+const connection
+const stream
 client.on("ready",()=>{
     console.log("ready")
 })
@@ -37,7 +41,10 @@ var msgToMe = m => {
 client.on('message', message => {
     if (message.channel.type !== 'text') return;
     let msg = msgToMe(message);
-	if (msg && msg.toLowerCase().startsWith('请你转播')) {
+    if (!msg){
+        return
+    }
+	if ( msg.toLowerCase().startsWith('请你转播')) {
         if (!( message.member.roles.find(role => role.name === "DJ") ||
                message.member.roles.find(role => role.name === "程序员") ||
                message.member.roles.find(role => role.name.startsWith("管理员"))
@@ -50,20 +57,18 @@ client.on('message', message => {
 			return message.reply('没有链接吗？');
         }
         console.log("play "+ url)
-		const { voiceChannel } = message.member;
+		voiceChannel = message.member.voiceChannel;
 
 		if (!voiceChannel) {
 			return message.reply('请你先加入一个语音室，让我知道你有权限。');
 		}
 
         message.reply('好的，我来试一下，请稍候。。。');
-		voiceChannel.join().then(async connection => {
+		voiceChannel.join().then(async c => {
             try {
+                connection = c
                 const info = await ytdl.getInfo(url)
-                //{ quality: [128,127,120,96,95,94,93] }
-                const livequality = info.formats.filter(x=> x.live && ["151","132","128","127","120","96","95","94","93","92"].indexOf(x.itag) !== -1 ).map(x=>x.itag).sort((a,b) => a > b)
-                
-                const stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
+                stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , liveBuffer: 25000, begin: Date.now() - 20000 } : { filter: 'audioonly' });
                 stream.on("info", (info, format) => { console.log(format) })
                 
                 message.reply('开始转播，正在缓冲，请稍候。。。');
@@ -75,7 +80,7 @@ client.on('message', message => {
                     message.reply(url + ' 的直播出错了\n YouTube说：' + err);
                     console.log("play error "+ url + "\n" + err)
                 })
-                const dispatcher = connection.playStream(stream);
+                dispatcher = connection.playStream(stream);
                 dispatcher.on('end', () => voiceChannel.leave());
                 dispatcher.on('error', () => voiceChannel.leave());
             } catch(err){
@@ -83,7 +88,13 @@ client.on('message', message => {
                 return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
             }
 		});
-	}
+	} else if ( msg.toLowerCase() === '请停止转播'){
+        if(connection){
+            connection.disconnect()
+            voiceChannel.leave()
+            connection = false
+        }
+    }
 });
 
 client.login(config.token);
