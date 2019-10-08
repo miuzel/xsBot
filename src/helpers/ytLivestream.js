@@ -90,10 +90,11 @@ client.on('message', message => {
 		});
 	} else if ( msg.toLowerCase().startsWith('请停止转播')){
         if(connection){
+            message.reply('好的。');
             connection.disconnect()
             voiceChannel.leave()
             connection = false
-            return message.reply('好的。');
+            return 
         }
         return message.reply('什么，现在没有转播啊');
     }
