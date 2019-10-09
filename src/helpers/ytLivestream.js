@@ -114,7 +114,6 @@ dispatch = async (url,message) => {
         if(playing){
           message.reply(url + ' 的直播出错了\n YouTube说：' + err);
           console.log("play error "+ url + "\n" + err)
-          playing = false
         } 
         voiceChannel.leave()
     })
