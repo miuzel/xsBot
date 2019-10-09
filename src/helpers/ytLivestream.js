@@ -94,7 +94,8 @@ dispatch = async (url, message) => {
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
     const delay = playabilityStatus ? playabilityStatus.pollDelayMs : 5000
     const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, liveBuffer: 25000, filter: 'audioonly' });
+    const recordqurlity = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
+    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, quality: recordqurlity });
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
