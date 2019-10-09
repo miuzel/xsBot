@@ -42,6 +42,7 @@ var tryDialog = async m => {
   if(result){
     await m.channel.send(result.response);
   }
+  return
 }
 
 var msgToMe = m => {

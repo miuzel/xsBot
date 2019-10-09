@@ -107,20 +107,21 @@ dispatch = async (url,message) => {
     s.on("end", () => {
         message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
         console.log("play end "+ url )
+        playing = false
         voiceChannel.leave()
     })
     s.on("error", (err) => {
         if(playing){
           message.reply(url + ' 的直播出错了\n YouTube说：' + err);
           console.log("play error "+ url + "\n" + err)
-        } else {
-          voiceChannel.leave()
-        }
+          playing = false
+        } 
+        voiceChannel.leave()
     })
     dispatcher = connection.playStream( s );
     dispatcher.on('end', () => {
+      console.log("dispatcher stopped "+ url + "\n")
       if(playing){
-        console.log("dispatcher stopped "+ url + "\n")
         message.reply('直播中断了，重连中，请稍候。。。'); 
         setTimeout(() => {
           dispatch(url,message)
@@ -129,10 +130,13 @@ dispatch = async (url,message) => {
     });
     dispatcher.on('error', (err) =>{
       console.log("dispatcher error "+ url + "\n" + err)
+      playing = false
       voiceChannel.leave()
     });
   } catch(err){
       console.log("play info error "+ url + "\n" + err)
+      playing = false
+      voiceChannel.leave()
       return message.reply(url + ' 的直播出错了\n YouTube说：' + err);
   }
 }
