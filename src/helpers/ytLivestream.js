@@ -92,9 +92,8 @@ client.on('message', message => {
 dispatch = async (url,message) => {
   try {
     const info = await ytdl.getInfo(url)
-    console.log(info.player_response.playabilityStatus.liveStreamability.pollDelayMs)
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
-    const delay = liveStreamability ? playabilityStatus.pollDelayMs : 5000
+    const delay = playabilityStatus ? playabilityStatus.pollDelayMs : 5000
     const livequality = info.formats.filter(x=> x.isHLS && x.audioBitrate > 95).map(x=>x.itag).sort((a,b) => a*1 > b*1)
     stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality , highWaterMark: 1<<22, liveBuffer: 25000, begin: Date.now() - delay } : {highWaterMark: 1<<22,  liveBuffer: 25000, quality: "lowestaudio", filter: 'audioonly' });
     stream.on("info", (info, format) => { console.log(format) })
