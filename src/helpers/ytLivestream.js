@@ -122,7 +122,7 @@ dispatch = async (url, message) => {
           dispatch(url, message)
         }, 200);
       } else {
-        message.reply(url + ' 的直播结束了，如果出了啥问你，请你重新播一次。');
+        message.reply(url + ' 的直播结束了。');
         voiceChannel.leave()
       }
     });
