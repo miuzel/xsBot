@@ -10,7 +10,10 @@ var voiceChannel = false
 var dispatcher = false
 var connection = false
 var stream = false
+var url = ""
 var playing = false
+var playingStartAt = 0
+var breakedAt = 0
 const log = bunyan.createLogger({ name: "ytStreamer" });
 client.on("ready", () => {
   log.info("ready")
@@ -53,17 +56,22 @@ client.on('message', message => {
     )) {
       return message.reply('转播直播内容请找DJ吧');
     }
-    let url = msg.slice('请你转播'.length).trim()
-    if (!url) {
+    if (!msg.slice('请你转播'.length).trim()) {
       return message.reply('没有链接吗？');
     }
+    url = msg.slice('请你转播'.length).trim()
     log.info("play " + url)
+    if(playing && voiceChannel){
+      playing = false 
+      message.reply('正在结束刚才的转播。。。');
+      voiceChannel.leave()
+    }
     voiceChannel = message.member.voiceChannel;
-
     if (!voiceChannel) {
       return message.reply('请你先加入一个语音室，让我知道你有权限。');
     }
-
+    playingStartAt = 0
+    breakedAt = 0
     message.reply('好的，我来试一下，请稍候。。。');
     voiceChannel.join().then(c => {
       connection = c
@@ -76,15 +84,39 @@ client.on('message', message => {
     )) {
       return message.reply('控制转播内容请找DJ吧');
     }
+    url = ""
+    playing = false
     if (connection) {
       message.reply('好的。');
-      playing = false
       connection.disconnect()
       voiceChannel.leave()
       connection = false
       return
     }
     return message.reply('什么，现在没有转播啊');
+  } else if (msg.toLowerCase().startsWith('请继续转播')) {
+    playing = false 
+    if (url) {
+      message.reply('OK');
+      if(connection){
+        message.reply('正在结束刚才的转播。。。');
+        connection.disconnect()
+        voiceChannel.leave()
+        connection = false
+      }
+      voiceChannel = message.member.voiceChannel;
+      if (!voiceChannel) {
+        return message.reply('请你先加入一个语音室，让我知道你有权限。');
+      }
+      voiceChannel.join().then(c => {
+        connection = c
+        setTimeout(() => {
+          dispatch(url, message)
+        }, 2000);
+      })
+    } else {
+      message.reply('现在没有在转播啊');
+    }
   }
 });
 
@@ -94,14 +126,22 @@ dispatch = async (url, message) => {
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
     const delay = playabilityStatus ? playabilityStatus.pollDelayMs : 5000
     const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    const recordqurlity = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, quality: recordqurlity });
+    const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
+    const progress = playingStartAt ? (breakedAt? (breakedAt - playingStartAt) : (Date.now() - playingStartAt))  : 0
+    //console.log( livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, begin: progress ,quality: recordquality})
+    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, quality: recordquality });
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
     const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus')
-    // const s = stream
+    //const s = stream
     s.on('start', function (commandLine) {
+      if(!playingStartAt){
+        playingStartAt = Date.now()
+      }
+      if(breakedAt){
+        playingStartAt = Date.now() - (breakedAt - playingStartAt)
+      }
       log.info('Spawned Ffmpeg with command: ' + commandLine);
     });
     s.on("end", () => {
@@ -111,6 +151,7 @@ dispatch = async (url, message) => {
     s.on("error", (err) => {
       log.info("play error " + url + "\n" + err)
       if (playing) {
+        breakedAt = Date.now()
         message.reply(url + ' 的直播流出错了\n' + err);
       }
     })
@@ -118,11 +159,13 @@ dispatch = async (url, message) => {
     dispatcher.on('end', () => {
       log.info("dispatcher stopped " + url + "\n")
       if (playing) {
+        breakedAt = Date.now()
         message.reply('直播中断了，重连中，请稍候。。。');
         setTimeout(() => {
           dispatch(url, message)
         }, 200);
       } else {
+        breakedAt = Date.now()
         message.reply(url + ' 的直播结束了。');
         voiceChannel.leave()
       }
@@ -130,6 +173,7 @@ dispatch = async (url, message) => {
     dispatcher.on('error', (err) => {
       log.info("dispatcher error " + url + "\n" + err)
       if (playing) {
+        breakedAt = Date.now()
         message.reply(url + ' 的直播出错了\n' + err);
       }
       playing = false
