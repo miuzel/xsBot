@@ -88,6 +88,9 @@ client.on('message', message => {
     playing = false
     if (connection) {
       message.reply('好的。');
+      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+        connection.dispatcher.stream.kill()
+      }
       connection.disconnect()
       voiceChannel.leave()
       connection = false
@@ -100,6 +103,9 @@ client.on('message', message => {
       message.reply('OK');
       if(connection){
         message.reply('正在结束刚才的转播。。。');
+        if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+          connection.dispatcher.stream.kill()
+        }
         connection.disconnect()
         voiceChannel.leave()
         connection = false
@@ -146,6 +152,9 @@ dispatch = async (url, message) => {
     });
     s.on("end", () => {
       playing = false
+      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+        connection.dispatcher.stream.kill()
+      }
       log.info("play stream end " + url)
     })
     s.on("error", (err) => {
@@ -154,8 +163,11 @@ dispatch = async (url, message) => {
         breakedAt = Date.now()
         message.reply(url + ' 的直播流出错了\n' + err);
       }
+      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+        connection.dispatcher.stream.kill()
+      }
     })
-    dispatcher = connection.playStream(s);
+    dispatcher = connection.playStream(s)
     dispatcher.on('end', () => {
       log.info("dispatcher stopped " + url + "\n")
       if (playing) {
@@ -175,6 +187,9 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播出错了\n' + err);
+      }
+      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+        connection.dispatcher.stream.kill()
       }
       playing = false
       voiceChannel.leave()
