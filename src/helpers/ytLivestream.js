@@ -61,11 +61,6 @@ client.on('message',async message => {
     }
     url = msg.slice('请你转播'.length).trim()
     log.info("play " + url)
-    if(playing && voiceChannel){
-      playing = false 
-      message.reply('正在结束刚才的转播。。。');
-      await voiceChannel.leave()
-    }
     voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
       return message.reply('请你先加入一个语音室，让我知道你有权限。');
@@ -85,11 +80,8 @@ client.on('message',async message => {
     playing = false
     if (connection) {
       message.reply('好的。');
-      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-        connection.dispatcher.stream.kill()
-      }
       await connection.disconnect()
-      await voiceChannel.leave()
+      voiceChannel.leave()
       connection = false
       return
     }
@@ -98,14 +90,6 @@ client.on('message',async message => {
     playing = false 
     if (url) {
       message.reply('OK');
-      if(connection){
-        message.reply('正在结束刚才的转播。。。');
-        if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-          connection.dispatcher.stream.kill()
-        }
-        await connection.disconnect()
-        connection = false
-      }
       voiceChannel = message.member.voice.channel;
       if (!voiceChannel) {
         return message.reply('请你先加入一个语音室，让我知道你有权限。');
@@ -119,8 +103,9 @@ client.on('message',async message => {
 
 dispatch = async (url, message) => {
   try {
-    await voiceChannel.leave()
+    console.log("joining")
     connection = await voiceChannel.join()
+    console.log("info")
     const info = await ytdl.getInfo(url)
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
     const delay = playabilityStatus ? playabilityStatus.liveStreamabilityRenderer.pollDelayMs * 1 : 5000
@@ -146,9 +131,6 @@ dispatch = async (url, message) => {
     });
     s.on("end", () => {
       playing = false
-      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
-        connection.dispatcher.stream.kill()
-      }
       log.info("play stream end " + url)
     })
     s.on("error", (err) => {
@@ -156,9 +138,6 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播流出错了\n' + err);
-      }
-      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
-        connection.dispatcher.stream.kill()
       }
     })
     dispatcher = connection.play(s,{passes: 2, bitrate: 96})
@@ -181,9 +160,6 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播出错了\n' + err);
-      }
-      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
-        connection.dispatcher.stream.kill()
       }
       playing = false
       voiceChannel.leave()
