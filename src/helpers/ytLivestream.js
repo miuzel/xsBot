@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const { config } = require('../../settings');
-const ffmpeg = require('fluent-ffmpeg');
 const bunyan = require('bunyan');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
@@ -73,7 +72,7 @@ client.on('message',async message => {
     message.reply('好的，我来试一下，请稍候。。。');
     setTimeout(() => {
       dispatch(url, message)
-    }, 200);
+    }, 1000);
   } else if (msg.toLowerCase().startsWith('请停止转播')) {
     if (!(message.member.roles.find(role => role.name === "DJ") ||
       message.member.roles.find(role => role.name === "程序员") ||
@@ -104,7 +103,7 @@ client.on('message',async message => {
       }
       setTimeout(() => {
         dispatch(url, message)
-      }, 200);
+      }, 1000);
     } else {
       message.reply('现在没有在转播啊');
     }
