@@ -35,7 +35,7 @@ export default class SuperChat {
             }
             let second = Math.floor((new Date().getTime() - this.videoStart)/1000)
             let msg = `感谢 ${data.authorName.simpleText} 的高亮留言，Mua :two_hearts: `
-            let msgEmbed = new Discord.RichEmbed()
+            let msgEmbed = new Discord.MessageEmbed()
             .setColor(getRandomColor())
             .setAuthor( data.authorName.simpleText, data.authorPhoto.thumbnails[0].url)
             .setThumbnail(data.authorPhoto.thumbnails[1].url)
