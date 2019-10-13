@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const { config } = require('../../settings');
+const ffmpeg = require('fluent-ffmpeg');
 const bunyan = require('bunyan');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
@@ -42,7 +43,7 @@ var msgToMe = m => {
 }
 
 
-client.on('message', message => {
+client.on('message',async message => {
   if (message.channel.type !== 'text') return;
   let msg = msgToMe(message);
   if (!msg) {
@@ -63,7 +64,7 @@ client.on('message', message => {
     if(playing && voiceChannel){
       playing = false 
       message.reply('正在结束刚才的转播。。。');
-      voiceChannel.leave()
+      await voiceChannel.leave()
     }
     voiceChannel = message.member.voiceChannel;
     if (!voiceChannel) {
@@ -84,8 +85,11 @@ client.on('message', message => {
     playing = false
     if (connection) {
       message.reply('好的。');
-      connection.disconnect()
-      voiceChannel.leave()
+      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+        connection.dispatcher.stream.kill()
+      }
+      await connection.disconnect()
+      await voiceChannel.leave()
       connection = false
       return
     }
@@ -96,20 +100,18 @@ client.on('message', message => {
       message.reply('OK');
       if(connection){
         message.reply('正在结束刚才的转播。。。');
-        connection.disconnect()
-        voiceChannel.leave()
+        if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
+          connection.dispatcher.stream.kill()
+        }
+        await connection.disconnect()
+        await voiceChannel.leave()
         connection = false
       }
       voiceChannel = message.member.voiceChannel;
       if (!voiceChannel) {
         return message.reply('请你先加入一个语音室，让我知道你有权限。');
       }
-      voiceChannel.join().then(c => {
-        connection = c
-        setTimeout(() => {
-          dispatch(url, message)
-        }, 2000);
-      })
+      dispatch(url, message)
     } else {
       message.reply('现在没有在转播啊');
     }
@@ -117,20 +119,24 @@ client.on('message', message => {
 });
 
 dispatch = async (url, message) => {
-  await voiceChannel.leave()
   try {
+    await voiceChannel.leave()
     connection = await voiceChannel.join()
     const info = await ytdl.getInfo(url)
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
-    const delay = playabilityStatus ? playabilityStatus.pollDelayMs : 5000
-    const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 128).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 128).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
+    const delay = playabilityStatus ? playabilityStatus.liveStreamabilityRenderer.pollDelayMs * 1 : 5000
+    console.log(delay)
+    const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
+    const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
     const progress = playingStartAt ? (breakedAt ? (breakedAt - playingStartAt) : (Date.now() - playingStartAt)) : 0
-    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, begin:progress });
+    console.log( livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : {  highWaterMark: 1 << 22, begin:progress })
+    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : {  highWaterMark: 1 << 22, begin:progress });
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
-     const s = stream
+    const s = ffmpeg(stream).withNoVideo().audioCodec('libopus').format('opus')
+    // const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus').inputOptions(['-filter_complex compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20'])
+    //const s = stream
     s.on('start', function (commandLine) {
       if (!playingStartAt) {
         playingStartAt = Date.now()
@@ -142,6 +148,9 @@ dispatch = async (url, message) => {
     });
     s.on("end", () => {
       playing = false
+      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
+        connection.dispatcher.stream.kill()
+      }
       log.info("play stream end " + url)
     })
     s.on("error", (err) => {
@@ -149,6 +158,9 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播流出错了\n' + err);
+      }
+      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
+        connection.dispatcher.stream.kill()
       }
     })
     dispatcher = connection.playStream(s,{passes: 2, bitrate: 96000})
@@ -171,6 +183,9 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播出错了\n' + err);
+      }
+      if (connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill) {
+        connection.dispatcher.stream.kill()
       }
       playing = false
       voiceChannel.leave()
