@@ -61,6 +61,9 @@ client.on('message',async message => {
     }
     url = msg.slice('请你转播'.length).trim()
     log.info("play " + url)
+    if (voiceChannel){
+      voiceChannel.leave()
+    }
     voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
       return message.reply('请你先加入一个语音室，让我知道你有权限。');
@@ -68,7 +71,9 @@ client.on('message',async message => {
     playingStartAt = 0
     breakedAt = 0
     message.reply('好的，我来试一下，请稍候。。。');
-    dispatch(url, message)
+    setTimeout(() => {
+      dispatch(url, message)
+    }, 200);
   } else if (msg.toLowerCase().startsWith('请停止转播')) {
     if (!(message.member.roles.find(role => role.name === "DJ") ||
       message.member.roles.find(role => role.name === "程序员") ||
@@ -90,11 +95,16 @@ client.on('message',async message => {
     playing = false 
     if (url) {
       message.reply('OK');
+      if (voiceChannel){
+        voiceChannel.leave()
+      }
       voiceChannel = message.member.voice.channel;
       if (!voiceChannel) {
         return message.reply('请你先加入一个语音室，让我知道你有权限。');
       }
-      dispatch(url, message)
+      setTimeout(() => {
+        dispatch(url, message)
+      }, 200);
     } else {
       message.reply('现在没有在转播啊');
     }
