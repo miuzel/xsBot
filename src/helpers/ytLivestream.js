@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 const { config } = require('../../settings');
-const ffmpeg = require('fluent-ffmpeg');
 const bunyan = require('bunyan');
 const client = new Discord.Client();
 const myUsername = config.myUsername;
@@ -73,10 +72,7 @@ client.on('message', message => {
     playingStartAt = 0
     breakedAt = 0
     message.reply('好的，我来试一下，请稍候。。。');
-    voiceChannel.join().then(c => {
-      connection = c
-      dispatch(url, message)
-    });
+    dispatch(url, message)
   } else if (msg.toLowerCase().startsWith('请停止转播')) {
     if (!(message.member.roles.find(role => role.name === "DJ") ||
       message.member.roles.find(role => role.name === "程序员") ||
@@ -88,9 +84,6 @@ client.on('message', message => {
     playing = false
     if (connection) {
       message.reply('好的。');
-      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-        connection.dispatcher.stream.kill()
-      }
       connection.disconnect()
       voiceChannel.leave()
       connection = false
@@ -103,9 +96,6 @@ client.on('message', message => {
       message.reply('OK');
       if(connection){
         message.reply('正在结束刚才的转播。。。');
-        if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-          connection.dispatcher.stream.kill()
-        }
         connection.disconnect()
         voiceChannel.leave()
         connection = false
@@ -127,34 +117,31 @@ client.on('message', message => {
 });
 
 dispatch = async (url, message) => {
+  await voiceChannel.leave()
   try {
+    connection = await voiceChannel.join()
     const info = await ytdl.getInfo(url)
     const playabilityStatus = info.player_response.playabilityStatus.liveStreamability
     const delay = playabilityStatus ? playabilityStatus.pollDelayMs : 5000
-    const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
-    const progress = playingStartAt ? (breakedAt? (breakedAt - playingStartAt) : (Date.now() - playingStartAt))  : 0
-    //console.log( livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, begin: progress ,quality: recordquality})
-    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, quality: recordquality });
+    const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 128).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
+    const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 128).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
+    const progress = playingStartAt ? (breakedAt ? (breakedAt - playingStartAt) : (Date.now() - playingStartAt)) : 0
+    stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : { highWaterMark: 1 << 22, begin:progress });
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
-    const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus')
-    //const s = stream
+     const s = stream
     s.on('start', function (commandLine) {
-      if(!playingStartAt){
+      if (!playingStartAt) {
         playingStartAt = Date.now()
       }
-      if(breakedAt){
+      if (breakedAt) {
         playingStartAt = Date.now() - (breakedAt - playingStartAt)
       }
       log.info('Spawned Ffmpeg with command: ' + commandLine);
     });
     s.on("end", () => {
       playing = false
-      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-        connection.dispatcher.stream.kill()
-      }
       log.info("play stream end " + url)
     })
     s.on("error", (err) => {
@@ -163,11 +150,8 @@ dispatch = async (url, message) => {
         breakedAt = Date.now()
         message.reply(url + ' 的直播流出错了\n' + err);
       }
-      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-        connection.dispatcher.stream.kill()
-      }
     })
-    dispatcher = connection.playStream(s)
+    dispatcher = connection.playStream(s,{passes: 2, bitrate: 96000})
     dispatcher.on('end', () => {
       log.info("dispatcher stopped " + url + "\n")
       if (playing) {
@@ -187,9 +171,6 @@ dispatch = async (url, message) => {
       if (playing) {
         breakedAt = Date.now()
         message.reply(url + ' 的直播出错了\n' + err);
-      }
-      if(connection.dispatcher && connection.dispatcher.stream && connection.dispatcher.stream.kill ) {
-        connection.dispatcher.stream.kill()
       }
       playing = false
       voiceChannel.leave()
