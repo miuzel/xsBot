@@ -44,7 +44,7 @@ var processMail = async mail => {
             let title = mail.html.match(/video-title-font-class[^>]+>([^<]*)</) 
             title = title ? title[1]: ""
             try {
-                msgEmbed = new Discord.RichEmbed()
+                msgEmbed = new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor(`${channel}` +(isLive? " 🔴 直播中 ":" 上传了")  ,config.channelThumnail[channel])
                 .setTitle(title)

@@ -33,7 +33,7 @@ var processLiveInfo = async (x) => {
             .then(data => {
                 let streamAt = moment(data.live_video_post.streamed_at).locale(config.locale).from()
                 let msg = `@everyone ${config.title} 开始直播啦，赶快去抢沙发吧。`
-                let msgEmbed = new Discord.RichEmbed()
+                let msgEmbed = new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor(data.stream_title ? data.stream_title +" 🔴 直播中" : "livestream直播 🔴 直播中","https://img.new.livestream.com/accounts/00000000019f9561/c135cdc2-fecb-4630-adf6-ac97bf6e126b_170x170.png")
                 .setDescription(`[【${config.title}】](${url}) ${streamAt} 开始直播啦\n${url}`)

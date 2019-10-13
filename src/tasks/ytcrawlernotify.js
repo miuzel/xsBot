@@ -52,7 +52,7 @@ var processLiveInfo = async ($,i,e) => {
             let msg = `${greeting} ${channel} 开始直播啦 不要忘记点赞`
             let msgEmbed
             try {
-                msgEmbed = new Discord.RichEmbed()
+                msgEmbed = new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor(`${channel} 🔴 开始直播`,config.channelThumnail[channel])
                 .setTitle(`${title}`)

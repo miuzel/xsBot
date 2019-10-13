@@ -161,7 +161,7 @@ var processPlotData = async (x) => {
                 deltaName1 = "目前"
             }
             let msg = `${atEveryone} ${config.title} 最新数据:  **${x[config.field1]}** `
-            let msgEmbed = new Discord.RichEmbed()
+            let msgEmbed = new Discord.MessageEmbed()
             .setColor('#ee3377')
             .setAuthor(config.title +" 🔴 数据直播",config.authorLogo)
             .setTitle(`截至目前，已有 **${x[config.field1]}** 人联署${config.title}\n`)
@@ -170,7 +170,7 @@ var processPlotData = async (x) => {
             .addField("还需要",`${x[config.field2]}`,true)
             .setThumbnail(config.thumbnail)
             .setURL(config.pageUrl)
-            .attachFile({attachment: image, name: "plot.png"})
+            .attachFiles([{attachment: image, name: "plot.png"}])
             .setImage("attachment://plot.png",'Plot')
             .setTimestamp()
             .setFooter(config.footer,config.footerUrl)
