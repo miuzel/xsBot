@@ -37,7 +37,7 @@ turndownService.keep('img')
 turndownService.addRule('imgurl', {
     filter: ['img'],
     replacement: function (content, node, options) {
-        emoji = node.getAttribute('src').match(/\/emoji\/.*\/([0-9a-f]+).png/)
+        emoji = node.getAttribute('src').match(/\/emoji\/.*\/([0-9a-f]+)\.png/)
         if(emoji && emoji[1]){
             return findSurrogatePair(emoji[1]).map(x=>"\\u"+x).join("")
         }
