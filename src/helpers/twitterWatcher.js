@@ -119,6 +119,9 @@ const crawler = new Crawler({
 const run = async () => {
     if(!maxid){
         maxid = await keyv.get(maxKey)
+        if(!maxid){
+            maxid = ""
+        }
         console.log(maxid)
     }
     crawler.queue(url+"&min_position="+maxid)
