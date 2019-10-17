@@ -23,7 +23,7 @@ turndownService.addRule('urlbase', {
             return ''
         }
         if(content.match(/^#/)){
-            return ` [${content}](${href}) `
+            return ` ${content} `
         }
         return ` ${href} `
     }
