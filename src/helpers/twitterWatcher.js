@@ -26,28 +26,21 @@ turndownService.addRule('urlbase', {
     }
   })
 
-const findSurrogatePair = (point) => {
-    // assumes point > 0xffff
-    var offset = point - 0x10000,
-        lead = 0xd800 + (offset >> 10),
-        trail = 0xdc00 + (offset & 0x3ff);
-    return [lead.toString(16), trail.toString(16)];
-}
 turndownService.keep('img')
 turndownService.addRule('imgurl', {
     filter: ['img'],
     replacement: function (content, node, options) {
-        emoji = node.getAttribute('src').match(/\/emoji\/.*\/([0-9a-f]+)\.png/)
-        if(emoji && emoji[1]){
-            return findSurrogatePair(emoji[1]).map(x=>"\\u"+x).join("")
+        emoji = node.getAttribute('src').match(/\/emoji\/.*\.png/)
+        if(emoji && emoji[1] && node.getAttribute('alt')){
+            return node.getAttribute('alt')
         }
-        return " "+ node.getAttribute('src') +" "
+        return " "+ node.getAttribute('src')
     }
 })
 turndownService.addRule('parareturn', {
     filter: ['p'],
     replacement: function (content, node, options) {
-        return content+"\n"
+        return  content+"\n"
     }
 })
 var maxid = ""
