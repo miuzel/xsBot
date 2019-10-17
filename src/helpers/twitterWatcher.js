@@ -22,7 +22,7 @@ turndownService.addRule('urlbase', {
         if(content.match(/^pic.twitter.com/)){
             return ''
         }
-        return `[${content}](${href})`
+        return ` [${content}](${href}) `
     }
   })
 
