@@ -31,7 +31,7 @@ turndownService.addRule('imgurl', {
     filter: ['img'],
     replacement: function (content, node, options) {
         emoji = node.getAttribute('src').match(/\/emoji\/.*\.png/)
-        if(emoji && emoji[1] && node.getAttribute('alt')){
+        if(emoji && node.getAttribute('alt')){
             return node.getAttribute('alt')
         }
         return " "+ node.getAttribute('src')
