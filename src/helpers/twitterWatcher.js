@@ -25,6 +25,9 @@ turndownService.addRule('urlbase', {
         if(content.match(/^#/)){
             return ` ${content} `
         }
+        if(content.match(/^@/)){
+            return ` [${content}](${href}) `
+        }
         return ` ${href} `
     }
   })
