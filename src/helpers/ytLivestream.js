@@ -66,8 +66,8 @@ client.on('message',async message => {
       voiceChannel.leave()
     }
     voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) {
-      return message.reply('请你先加入一个语音室，让我知道你有权限。');
+    if (!voiceChannel) {播放
+      return message.rep播放一个语音室，让我知道你有权限。');
     }
     playingStartAt = 0
     breakedAt = 0
@@ -111,14 +111,14 @@ client.on('message',async message => {
     } else {
       message.reply('现在没有在转播啊');
     }
-  } else if (msg.toLowerCase().startsWith('请重复')) {
+  } else if (msg.toLowerCase().startsWith('请重复播放')) {
     if(isLive){
       message.reply('直播的内容结束后需要过一会才能重播，等结束了你再播一次就好。');
     } else {
       repeat = true
       message.reply('好的，我会重复播放正在转播的内容');
     }
-  } else if (msg.toLowerCase().startsWith('不要重复')) {
+  } else if (msg.toLowerCase().startsWith('不需要重复播放了')) {
     repeat = false
     message.reply('好的，现在的播完就结束');
   }
@@ -134,15 +134,13 @@ dispatch = async (url, message) => {
     const delay = playabilityStatus ? playabilityStatus.liveStreamabilityRenderer.pollDelayMs * 1 : 5000
     
     const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
-    isLive = livequality ? true : false
+    isLive = livequality.length ? true : false
     const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
     const progress = playingStartAt ? (breakedAt ? (breakedAt - playingStartAt) : (Date.now() - playingStartAt)) : 0
     stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : {  highWaterMark: 1 << 22, begin:progress });
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
-    //const s = ffmpeg(stream).withNoVideo().audioCodec('libopus').format('opus')
-    // const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus').inputOptions(['-filter_complex compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20'])
     const s = stream
     s.on('start', function (commandLine) {
       if (!playingStartAt) {
