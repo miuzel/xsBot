@@ -13,6 +13,8 @@ var url = ""
 var playing = false
 var playingStartAt = 0
 var breakedAt = 0
+var isLive = false 
+var repeat = false 
 const log = bunyan.createLogger({ name: "ytStreamer" });
 client.on("ready", () => {
   log.info("ready")
@@ -69,6 +71,7 @@ client.on('message',async message => {
     }
     playingStartAt = 0
     breakedAt = 0
+    repeat = false
     message.reply('好的，我来试一下，请稍候。。。');
     setTimeout(() => {
       dispatch(url, message)
@@ -81,6 +84,7 @@ client.on('message',async message => {
       return message.reply('控制转播内容请找DJ吧');
     }
     url = ""
+    repeat = false
     playing = false
     if (connection) {
       message.reply('好的。');
@@ -107,6 +111,16 @@ client.on('message',async message => {
     } else {
       message.reply('现在没有在转播啊');
     }
+  } else if (msg.toLowerCase().startsWith('请重复')) {
+    if(isLive){
+      message.reply('直播的内容结束后需要过一会才能重播，等结束了你再播一次就好。');
+    } else {
+      repeat = true
+      message.reply('好的，我会重复播放正在转播的内容');
+    }
+  } else if (msg.toLowerCase().startsWith('不要重复')) {
+    repeat = false
+    message.reply('好的，现在的播完就结束');
   }
 });
 
@@ -120,6 +134,7 @@ dispatch = async (url, message) => {
     const delay = playabilityStatus ? playabilityStatus.liveStreamabilityRenderer.pollDelayMs * 1 : 5000
     
     const livequality = info.formats.filter(x => x.isHLS && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 > b * 1)
+    isLive = livequality ? true : false
     const recordquality = info.formats.filter(x => !x.encoding && x.audioBitrate > 95).map(x => x.itag).sort((a, b) => a * 1 < b * 1)
     const progress = playingStartAt ? (breakedAt ? (breakedAt - playingStartAt) : (Date.now() - playingStartAt)) : 0
     stream = ytdl.downloadFromInfo(info, livequality.length ? { quality: livequality, highWaterMark: 1 << 22, liveBuffer: 25000, begin: Date.now() - delay } : {  highWaterMark: 1 << 22, begin:progress });
@@ -161,7 +176,13 @@ dispatch = async (url, message) => {
       } else {
         breakedAt = Date.now()
         message.reply(url + ' 的直播结束了。');
-        voiceChannel.leave()
+        if(repeat && !isLive){
+          breakedAt = 0
+          message.reply(url + ' 再次播放中。');
+          dispatch(url, message)
+        } else {
+          voiceChannel.leave()
+        }
       }
     });
     dispatcher.on('error', (err) => {
