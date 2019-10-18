@@ -66,8 +66,8 @@ client.on('message',async message => {
       voiceChannel.leave()
     }
     voiceChannel = message.member.voice.channel;
-    if (!voiceChannel) {播放
-      return message.rep播放一个语音室，让我知道你有权限。');
+    if (!voiceChannel) {
+      return message.reply('请你先加入一个语音室，让我知道你有权限。');
     }
     playingStartAt = 0
     breakedAt = 0
@@ -141,6 +141,8 @@ dispatch = async (url, message) => {
     stream.on("info", (info, format) => { log.info(format) })
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
+    //const s = ffmpeg(stream).withNoVideo().audioCodec('libopus').format('opus')
+    // const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus').inputOptions(['-filter_complex compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20'])
     const s = stream
     s.on('start', function (commandLine) {
       if (!playingStartAt) {
