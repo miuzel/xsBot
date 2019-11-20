@@ -32,7 +32,6 @@
     "csv-stringify": "^5.3.3",
     "dialogflow": "^0.10.2",
     "discord.js": "discordjs/discord.js",
-    "erlpack": "discordapp/erlpack",
     "fluent-ffmpeg": "^2.1.2",
     "google-auth-library": "^4.2.5",
     "googleapis": "^41.0.1",
