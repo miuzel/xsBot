@@ -142,9 +142,10 @@ dispatch = async (url, message) => {
     message.reply('开始转播，正在缓冲，请稍候。。。');
     playing = true
     //const s = ffmpeg(stream).withNoVideo().audioCodec('libopus').format('opus')
-    // const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus').inputOptions(['-filter_complex compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20'])
+    //const s = ffmpeg(stream).withNoVideo().withAudioBitrate(96).audioCodec('libopus').format('opus').inputOptions(['-filter_complex compand=attacks=0:points=-30/-900|-20/-20|0/0|20/20'])
     const s = stream
     s.on('start', function (commandLine) {
+      log.info('Spawned Ffmpeg with command: ' + commandLine);
       if (!playingStartAt) {
         playingStartAt = Date.now()
       }
