@@ -70,12 +70,17 @@ var processLiveInfo = async ($,i,e) => {
             //let
             for (var discordChannel of config.discordChannels){
                 let [guildName,channelName]  = discordChannel.split('#');
-                let channel = discordClient
-                .guilds.find(guild => guild.name === guildName)
-                .channels.find(ch => ch.name === channelName)
-                channel.send(msg,{
-                    embed: msgEmbed
-                });
+                try {
+                    let channel = discordClient
+                    .guilds.find(guild => guild.name === guildName)
+                    .channels.find(ch => ch.name === channelName)
+                    channel.send(msg,{
+                        embed: msgEmbed
+                    });
+                } catch(err) {
+                    log.error(err)
+                }
+
             }
             await keyv.set(videoKey,notified)
         }
