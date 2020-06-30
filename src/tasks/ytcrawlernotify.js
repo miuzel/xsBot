@@ -109,7 +109,7 @@ var newCrawler = (config) => {
             }else{
                 var $ = res.$;
                 try {
-                    if ($("title").text().match(/Subscriptions/)){
+                    if ($("title").text().match(/YouTube/)){
                         // $(".badge-style-type-live-now").each( (_,e) => {
                         //     processLiveInfo($,e);
                         // })
