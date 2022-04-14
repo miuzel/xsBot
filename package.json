@@ -24,7 +24,7 @@
     "@babel/runtime": "^7.5.5",
     "@discordjs/uws": "^11.149.1",
     "@keyv/sqlite": "^2.0.0",
-    "async": "^3.1.0",
+    "async": "^3.2.2",
     "bufferutil": "^4.0.1",
     "bunyan": "^1.8.12",
     "chart.js": "^2.8.0",
